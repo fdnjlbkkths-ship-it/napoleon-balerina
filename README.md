@@ -35,7 +35,7 @@ git init
 git add .
 git commit -m "Initial commit: сайт кондитерской Наполеон и Балерина"
 git branch -M main
-git remote add origin https://github.com/ВАШ_USERNAME/napoleon-balerina.git
+git remote add origin https://github.com/fdnjlbkkths-ship-it/napoleon-balerina.git
 git push -u origin main
 ```
 
@@ -50,7 +50,7 @@ git push -u origin main
 ### 5. Адрес сайта
 
 ```
-https://ВАШ_USERNAME.github.io/napoleon-balerina/
+https://fdnjlbkkths-ship-it.github.io/napoleon-balerina/
 ```
 
 Сборка занимает 1–3 минуты. Статус — вкладка **Actions** в репозитории.
