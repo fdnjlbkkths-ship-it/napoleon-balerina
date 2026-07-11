@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="description" content="Наполеон и Балерина — кондитерская с авторскими тортами, пирожными и десертами. Сладкие шедевры вашего стола.">
   <meta name="keywords" content="кондитерская, торты, пирожные, десерты, заказ тортов, Наполеон и Балерина">
   <meta name="author" content="Наполеон и Балерина">
@@ -10,21 +10,19 @@
   <meta property="og:description" content="Сладкие шедевры вашего стола. Торты, пирожные, печенье и напитки.">
   <meta property="og:type" content="website">
   <title>Наполеон и Балерина — Сладкие шедевры вашего стола</title>
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/jpeg" href="images/logo.jpg">
 </head>
-<body>
+<body class="page-home">
   <div id="loader" class="loader" aria-hidden="true">
     <div class="loader__spinner"></div>
     <p class="loader__text">Наполеон и Балерина</p>
   </div>
 
-  <header class="header" role="banner">
+  <header class="header header--over-hero" role="banner">
     <div class="container header__inner">
       <a href="index.html" class="header__logo" aria-label="Наполеон и Балерина — на главную">
-        <span>🍰</span> Наполеон и Балерина
+        <img class="header__logo-img" src="images/logo.jpg" alt="" width="44" height="44">
+        <span class="header__logo-text">Наполеон и Балерина</span>
       </a>
       <nav class="header__nav" aria-label="Основная навигация">
         <a href="index.html" class="header__link">Главная</a>
@@ -55,20 +53,37 @@
 
   <main>
     <section class="hero" aria-label="Главный баннер">
-      <div class="hero__bg">
-        <img src="https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=1920&q=80" alt="Кондитерские изделия на столе" width="1920" height="1080">
+      <div class="hero__stage" aria-hidden="true">
+        <div class="hero__photo-wrap" id="hero-slides">
+          <img
+            class="hero__photo is-active"
+            src="images/products/flowwow/tort-balerina-1.jpg"
+            alt=""
+            width="1600"
+            height="2000"
+            fetchpriority="high"
+          >
+        </div>
+        <div class="hero__glow"></div>
+        <div class="hero__veil"></div>
+        <div class="hero__grain"></div>
+        <div class="hero__shimmer"></div>
       </div>
-      <div class="container">
+      <div class="container hero__container">
         <div class="hero__content">
-          <span class="hero__badge">Кондитерская с 2015 года</span>
-          <h1 class="hero__title" id="hero-tagline">Сладкие шедевры вашего стола</h1>
-          <p class="hero__text">Авторские торты, нежные пирожные и домашнее печенье — всё приготовлено с любовью из натуральных ингредиентов.</p>
-          <div class="hero__actions">
-            <a href="menu.html" class="btn btn--primary">Смотреть меню</a>
-            <a href="about.html" class="btn btn--secondary">О нас</a>
+          <p class="hero__brand" data-hero-animate>Наполеон и Балерина</p>
+          <h1 class="hero__title" id="hero-tagline" data-hero-animate>Сладкие шедевры вашего стола</h1>
+          <p class="hero__text" data-hero-animate>Авторские торты и десерты ручной работы — к празднику и просто так.</p>
+          <div class="hero__actions" data-hero-animate>
+            <a href="menu.html" class="btn btn--primary btn--hero">Смотреть меню</a>
+            <a href="#categories-title" class="btn btn--ghost">Категории</a>
           </div>
         </div>
       </div>
+      <div id="hero-dots" class="hero__dots" hidden></div>
+      <a href="#categories-title" class="hero__scroll" aria-label="Листать вниз">
+        <span></span>
+      </a>
     </section>
 
     <section class="section" aria-labelledby="categories-title">
@@ -101,7 +116,7 @@
     <section class="section cta-section" aria-labelledby="contact-title">
       <div class="container">
         <h2 class="section__title" id="contact-title" data-animate>Напишите нам</h2>
-        <p data-animate>Есть вопрос или хотите заказать торт на праздник? Мы с радостью ответим!</p>
+        <p id="home-contact-text" data-animate>Есть вопрос или хотите заказать торт на праздник? Мы с радостью ответим!</p>
         <form id="home-contact-form" class="contacts-grid" style="max-width: 560px; margin: 0 auto;" data-animate novalidate>
           <div class="form-group">
             <label for="home-name">Ваше имя</label>
@@ -129,8 +144,8 @@
     <div class="container">
       <div class="footer__grid">
         <div>
-          <div class="footer__brand">Наполеон и Балерина</div>
-          <p class="footer__text">Кондитерская, где каждый десерт — произведение искусства. Натуральные ингредиенты, авторские рецепты и тепло домашней кухни.</p>
+          <div class="footer__brand" data-shop="name">Наполеон и Балерина</div>
+          <p class="footer__text" data-shop="footerText">Кондитерская, где каждый десерт — произведение искусства. Натуральные ингредиенты, авторские рецепты и тепло домашней кухни.</p>
         </div>
         <div>
           <h3 class="footer__title">Навигация</h3>
@@ -141,12 +156,12 @@
         </div>
         <div>
           <h3 class="footer__title">Контакты</h3>
-          <a href="tel:+74951234567" class="footer__link">+7 (495) 123-45-67</a>
-          <a href="mailto:hello@napoleon-balerina.ru" class="footer__link">hello@napoleon-balerina.ru</a>
-          <span class="footer__link">г. Москва, ул. Кондитерская, д. 12</span>
+          <a href="tel:+79516806915" class="footer__link" data-shop="phone">+7 (951) 680-69-15</a>
+          <a href="mailto:89030633443@mail.ru" class="footer__link" data-shop="email">89030633443@mail.ru</a>
+          <span class="footer__link" data-shop="address">г. Чебоксары, ул. Лесная 7.</span>
         </div>
       </div>
-      <div class="footer__bottom">&copy; 2026 Наполеон и Балерина. Все права защищены.</div>
+      <div class="footer__bottom">&copy; 2026 <span data-shop="name">Наполеон и Балерина</span>. Все права защищены.</div>
     </div>
   </footer>
 

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Админка каталога — Наполеон и Балерина</title>
+  <link rel="icon" type="image/jpeg" href="images/logo.jpg">
+</head>
+<body class="admin-body">
+  <div id="admin-auth" class="admin-auth hidden">
+    <form id="admin-auth-form" class="admin-auth__card">
+      <h1>Админка каталога</h1>
+      <p>Введите PIN для доступа к редактированию</p>
+      <input type="password" id="admin-pin" placeholder="PIN" autocomplete="current-password" required>
+      <button type="submit" class="admin-btn admin-btn--primary">Войти</button>
+      <p id="admin-auth-error" class="admin-error" hidden></p>
+    </form>
+  </div>
+
+  <div id="admin-app" class="admin hidden">
+    <header class="admin-top">
+      <div class="admin-top__brand">
+        <strong>Каталог</strong>
+        <span id="admin-status" class="admin-top__status">загрузка…</span>
+      </div>
+      <nav class="admin-tabs" role="tablist">
+        <button type="button" class="admin-tab is-active" data-tab="products">Товары</button>
+        <button type="button" class="admin-tab" data-tab="categories">Категории</button>
+        <button type="button" class="admin-tab" data-tab="shop">Магазин</button>
+      </nav>
+      <div class="admin-top__actions">
+        <a href="index.html" class="admin-btn admin-btn--ghost" target="_blank" rel="noopener">Витрина</a>
+        <button type="button" id="admin-reload" class="admin-btn admin-btn--ghost" title="Сбросить черновик и загрузить из файла">Из файла</button>
+        <button type="button" id="admin-save" class="admin-btn admin-btn--primary">Сохранить в файл</button>
+      </div>
+    </header>
+
+    <p id="admin-toast" class="admin-toast" hidden></p>
+    <p id="admin-pin-warn" class="admin-banner" hidden>
+      PIN не задан — админка открыта без пароля. Добавьте <code>ADMIN_PIN</code> в <code>.env</code>.
+    </p>
+
+    <!-- PRODUCTS -->
+    <section id="tab-products" class="admin-layout">
+      <aside class="admin-side">
+        <div class="admin-side__filters">
+          <input type="search" id="product-search" placeholder="🔍 Поиск: Анна Павлова" class="admin-input">
+          <select id="product-category-filter" class="admin-input"></select>
+          <label class="admin-check">
+            <input type="checkbox" id="product-hidden-only"> Только скрытые
+          </label>
+        </div>
+        <div id="product-list" class="admin-list"></div>
+      </aside>
+      <main class="admin-main">
+        <div id="product-empty" class="admin-empty">Выберите товар слева</div>
+        <form id="product-editor" class="admin-editor hidden" novalidate>
+          <div class="admin-editor__head">
+            <h2 id="product-editor-title">Товар</h2>
+            <div class="admin-editor__actions">
+              <label class="admin-switch">
+                <input type="checkbox" id="field-hidden">
+                <span>Скрыт на сайте</span>
+              </label>
+              <button type="button" id="product-duplicate" class="admin-btn">Дублировать</button>
+              <a id="product-open" class="admin-btn admin-btn--ghost" href="#" target="_blank" rel="noopener">Открыть</a>
+            </div>
+          </div>
+
+          <div class="admin-grid">
+            <label class="admin-field admin-field--full">
+              <span>Название</span>
+              <input type="text" id="field-name" class="admin-input" required>
+            </label>
+            <label class="admin-field">
+              <span>Цена, ₽</span>
+              <input type="number" id="field-price" class="admin-input" min="0" step="1">
+            </label>
+            <label class="admin-field">
+              <span>Старая цена, ₽</span>
+              <input type="number" id="field-priceOld" class="admin-input" min="0" step="1">
+            </label>
+            <label class="admin-field">
+              <span>Вес</span>
+              <input type="text" id="field-weight" class="admin-input" placeholder="500 гр.">
+            </label>
+            <label class="admin-field">
+              <span>Размер</span>
+              <input type="text" id="field-size" class="admin-input">
+            </label>
+            <label class="admin-field">
+              <span>Срок изготовления</span>
+              <input type="text" id="field-prepTime" class="admin-input" placeholder="от 24 часов">
+            </label>
+            <label class="admin-field">
+              <span>Категория</span>
+              <select id="field-category" class="admin-input"></select>
+            </label>
+            <label class="admin-field">
+              <span>Подкатегория</span>
+              <select id="field-subcategory" class="admin-input"></select>
+            </label>
+            <label class="admin-field admin-field--full">
+              <span>Краткое описание (карточка)</span>
+              <textarea id="field-description" class="admin-input" rows="3"></textarea>
+            </label>
+            <label class="admin-field admin-field--full">
+              <span>Полное описание</span>
+              <textarea id="field-fullDescription" class="admin-input" rows="6"></textarea>
+            </label>
+            <label class="admin-field admin-field--full">
+              <span>Состав</span>
+              <textarea id="field-composition" class="admin-input" rows="3"></textarea>
+            </label>
+          </div>
+
+          <fieldset class="admin-block">
+            <legend>Начинки <span class="admin-hint">«Малина» = +400 ₽ на сайте</span></legend>
+            <div id="fillings-chips" class="admin-chips"></div>
+            <div class="admin-inline">
+              <input type="text" id="filling-new" class="admin-input" placeholder="Новая начинка">
+              <button type="button" id="filling-add" class="admin-btn">Добавить</button>
+            </div>
+          </fieldset>
+
+          <fieldset class="admin-block">
+            <legend>Фото <span class="admin-hint">1 — общий план · 2 — макро · 3 — коробка</span></legend>
+            <div id="gallery" class="admin-gallery"></div>
+            <div class="admin-inline">
+              <label class="admin-btn admin-btn--primary">
+                Загрузить с компьютера
+                <input type="file" id="gallery-upload" accept="image/jpeg,image/png,image/webp,image/gif" hidden>
+              </label>
+              <button type="button" id="gallery-pick" class="admin-btn">Выбрать из фото товаров</button>
+            </div>
+          </fieldset>
+        </form>
+      </main>
+    </section>
+
+    <!-- CATEGORIES -->
+    <section id="tab-categories" class="admin-panel hidden">
+      <p class="admin-panel__lead">Нажмите на обложку или выберите фото из товаров этой категории.</p>
+      <div id="category-list" class="admin-cat-grid"></div>
+    </section>
+
+    <!-- SHOP -->
+    <section id="tab-shop" class="admin-panel hidden">
+      <form id="shop-editor" class="admin-editor admin-editor--single">
+        <h2>Магазин</h2>
+        <div class="admin-grid">
+          <label class="admin-field">
+            <span>Название</span>
+            <input type="text" id="shop-name" class="admin-input">
+          </label>
+          <label class="admin-field">
+            <span>Слоган</span>
+            <input type="text" id="shop-tagline" class="admin-input">
+          </label>
+          <label class="admin-field">
+            <span>Телефон</span>
+            <input type="text" id="shop-phone" class="admin-input">
+          </label>
+          <label class="admin-field">
+            <span>Email</span>
+            <input type="email" id="shop-email" class="admin-input">
+          </label>
+          <label class="admin-field admin-field--full">
+            <span>Адрес</span>
+            <input type="text" id="shop-address" class="admin-input">
+          </label>
+          <label class="admin-field">
+            <span>Город</span>
+            <input type="text" id="shop-city" class="admin-input">
+          </label>
+          <label class="admin-field">
+            <span>Часы работы</span>
+            <input type="text" id="shop-hours" class="admin-input">
+          </label>
+          <label class="admin-field admin-field--full">
+            <span>Текст в подвале (слева)</span>
+            <textarea id="shop-footer-text" class="admin-input" rows="3"></textarea>
+          </label>
+          <label class="admin-field">
+            <span>Главная: заголовок блока связи</span>
+            <input type="text" id="shop-home-contact-title" class="admin-input">
+          </label>
+          <label class="admin-field admin-field--full">
+            <span>Главная: текст блока связи</span>
+            <textarea id="shop-home-contact-text" class="admin-input" rows="2"></textarea>
+          </label>
+          <label class="admin-field">
+            <span>WhatsApp (телефон)</span>
+            <input type="text" id="shop-wa" class="admin-input">
+          </label>
+          <label class="admin-field">
+            <span>Telegram username</span>
+            <input type="text" id="shop-tg" class="admin-input">
+          </label>
+          <label class="admin-field admin-field--full">
+            <span>MAX chat URL</span>
+            <input type="url" id="shop-max" class="admin-input">
+          </label>
+        </div>
+
+        <fieldset class="admin-block">
+          <legend>Карусели</legend>
+          <p class="admin-hint">Скорость общая для всех каруселей. Автопрокрутка по умолчанию только на главном баннере.</p>
+          <div class="admin-grid">
+            <label class="admin-field">
+              <span>Пауза между слайдами, сек</span>
+              <input type="number" id="shop-carousel-interval" class="admin-input" min="1.5" max="30" step="0.5" value="5.5">
+            </label>
+            <label class="admin-field">
+              <span>Длительность перехода, сек</span>
+              <input type="number" id="shop-carousel-transition" class="admin-input" min="0.2" max="5" step="0.1" value="1.1">
+            </label>
+          </div>
+          <label class="admin-switch">
+            <input type="checkbox" id="shop-hero-carousel">
+            <span>Главная — баннер сверху</span>
+          </label>
+          <label class="admin-switch">
+            <input type="checkbox" id="shop-products-carousel">
+            <span>Страница товара — автопрокрутка фото</span>
+          </label>
+        </fieldset>
+
+        <fieldset class="admin-block">
+          <legend>Главный экран — фото</legend>
+          <p class="admin-hint">Первое фото — обложка, если карусель выключена.</p>
+          <div id="hero-gallery" class="admin-gallery"></div>
+          <div class="admin-inline">
+            <label class="admin-btn admin-btn--primary">
+              Загрузить с компьютера
+              <input type="file" id="hero-upload" accept="image/jpeg,image/png,image/webp,image/gif" hidden>
+            </label>
+            <button type="button" id="hero-pick" class="admin-btn">Из фото товаров</button>
+          </div>
+        </fieldset>
+      </form>
+    </section>
+  </div>
+
+  <div id="image-picker" class="admin-picker hidden" role="dialog" aria-modal="true" aria-labelledby="image-picker-title">
+    <div class="admin-picker__backdrop" data-picker-close></div>
+    <div class="admin-picker__sheet">
+      <div class="admin-picker__head">
+        <h2 id="image-picker-title">Выберите фото</h2>
+        <button type="button" class="admin-btn" data-picker-close aria-label="Закрыть">×</button>
+      </div>
+      <p id="image-picker-hint" class="admin-picker__hint"></p>
+      <div id="image-picker-grid" class="admin-picker__grid"></div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/js/admin.js"></script>
+</body>
+</html>

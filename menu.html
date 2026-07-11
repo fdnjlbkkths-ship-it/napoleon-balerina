@@ -2,14 +2,11 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="description" content="Меню кондитерской Наполеон и Балерина — 20 позиций: торты, пирожные, печенье, десерты и напитки. Закажите онлайн.">
   <meta name="keywords" content="меню, торты, пирожные, заказ, кондитерская">
   <title>Меню — Наполеон и Балерина</title>
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/jpeg" href="images/logo.jpg">
 </head>
 <body>
   <div id="loader" class="loader" aria-hidden="true">
@@ -20,7 +17,8 @@
   <header class="header" role="banner">
     <div class="container header__inner">
       <a href="index.html" class="header__logo" aria-label="Наполеон и Балерина — на главную">
-        <span>🍰</span> Наполеон и Балерина
+        <img class="header__logo-img" src="images/logo.jpg" alt="" width="44" height="44">
+        <span class="header__logo-text">Наполеон и Балерина</span>
       </a>
       <nav class="header__nav" aria-label="Основная навигация">
         <a href="index.html" class="header__link">Главная</a>
@@ -53,7 +51,7 @@
     <header class="page-header">
       <div class="container">
         <h1 data-animate>Наше меню</h1>
-        <p class="section__subtitle" data-animate>20 авторских позиций — от воздушных тортов до ароматного какао</p>
+        <p class="section__subtitle" data-animate>Авторские позиции — от классики до праздничных тортов на заказ</p>
       </div>
     </header>
 
@@ -62,10 +60,20 @@
         <div class="products__search" data-animate>
           <div class="form-group">
             <label for="product-search" class="sr-only">Поиск по меню</label>
-            <input type="search" id="product-search" placeholder="🔍 Поиск по названию или описанию..." aria-label="Поиск товаров">
+            <input type="search" id="product-search" placeholder="🔍 Поиск: Анна Павлова" aria-label="Поиск товаров">
           </div>
         </div>
         <div id="category-filters" class="products__filters" data-animate role="tablist" aria-label="Фильтр по категориям"></div>
+        <div class="products__toolbar" data-animate>
+          <div class="products__sort">
+            <span class="products__toolbar-label" id="sort-label">Сортировка</span>
+            <div id="product-sort" class="toolbar-dropdown" data-toolbar-dropdown aria-labelledby="sort-label"></div>
+          </div>
+          <div class="products__max-price">
+            <span class="products__toolbar-label" id="max-price-label">До цены</span>
+            <div id="product-max-price" class="toolbar-dropdown" data-toolbar-dropdown aria-labelledby="max-price-label"></div>
+          </div>
+        </div>
         <div id="products-grid" class="products__grid"></div>
       </div>
     </section>
@@ -75,8 +83,8 @@
     <div class="container">
       <div class="footer__grid">
         <div>
-          <div class="footer__brand">Наполеон и Балерина</div>
-          <p class="footer__text">Кондитерская, где каждый десерт — произведение искусства.</p>
+          <div class="footer__brand" data-shop="name">Наполеон и Балерина</div>
+          <p class="footer__text" data-shop="footerText">Кондитерская, где каждый десерт — произведение искусства.</p>
         </div>
         <div>
           <h3 class="footer__title">Навигация</h3>
@@ -87,11 +95,12 @@
         </div>
         <div>
           <h3 class="footer__title">Контакты</h3>
-          <a href="tel:+74951234567" class="footer__link">+7 (495) 123-45-67</a>
-          <a href="mailto:hello@napoleon-balerina.ru" class="footer__link">hello@napoleon-balerina.ru</a>
+          <a href="tel:+79516806915" class="footer__link" data-shop="phone">+7 (951) 680-69-15</a>
+          <a href="mailto:89030633443@mail.ru" class="footer__link" data-shop="email">89030633443@mail.ru</a>
+          <span class="footer__link" data-shop="address">г. Чебоксары, ул. Лесная 7.</span>
         </div>
       </div>
-      <div class="footer__bottom">&copy; 2026 Наполеон и Балерина. Все права защищены.</div>
+      <div class="footer__bottom">&copy; 2026 <span data-shop="name">Наполеон и Балерина</span>. Все права защищены.</div>
     </div>
   </footer>
 

@@ -3,3 +3,7 @@ dist/
 .DS_Store
 *.log
 .env
+public/fonts/cerca-preview/
+src/data/products.json.bak
+_out1.txt
+_out2.txt

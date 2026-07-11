@@ -39,19 +39,79 @@ export function initScrollAnimations() {
 }
 
 export function initHeroParallax() {
-  const heroBg = document.querySelector('.hero__bg img');
-  if (!heroBg) return;
+  const hero = document.querySelector('.hero');
+  const wrap = document.querySelector('.hero__photo-wrap');
+  if (!hero || !wrap) return;
 
-  gsap.to(heroBg, {
-    yPercent: 20,
-    ease: 'none',
-    scrollTrigger: {
-      trigger: '.hero',
-      start: 'top top',
-      end: 'bottom top',
-      scrub: true,
-    },
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const photos = () => gsap.utils.toArray('.hero__photo');
+
+  const applyKenBurns = (photo) => {
+    if (!photo || reduceMotion) return;
+    gsap.killTweensOf(photo);
+    gsap.set(photo, { scale: 1.12, xPercent: 0, yPercent: 0, transformOrigin: '60% 35%' });
+    gsap.to(photo, {
+      scale: 1.22,
+      xPercent: -2,
+      duration: 18,
+      ease: 'sine.inOut',
+      yoyo: true,
+      repeat: -1,
+    });
+  };
+
+  photos().forEach((photo) => {
+    if (photo.classList.contains('is-active')) applyKenBurns(photo);
+    else gsap.set(photo, { scale: 1.12, transformOrigin: '60% 35%' });
   });
+
+  if (!reduceMotion) {
+    gsap.to(wrap, {
+      yPercent: 12,
+      ease: 'none',
+      scrollTrigger: {
+        trigger: hero,
+        start: 'top top',
+        end: 'bottom top',
+        scrub: true,
+      },
+    });
+  }
+
+  window.addEventListener('hero-slide-change', (e) => {
+    const next = photos()[e.detail?.index];
+    photos().forEach((photo) => gsap.killTweensOf(photo));
+    applyKenBurns(next);
+  });
+
+  const pieces = gsap.utils.toArray('[data-hero-animate]');
+  if (pieces.length) {
+    gsap.set(pieces, { opacity: 0, y: 36 });
+    gsap.to(pieces, {
+      opacity: 1,
+      y: 0,
+      duration: 1.05,
+      stagger: 0.14,
+      ease: 'power3.out',
+      delay: 0.35,
+    });
+  }
+
+  const shimmer = document.querySelector('.hero__shimmer');
+  if (shimmer && !reduceMotion) {
+    gsap.fromTo(
+      shimmer,
+      { xPercent: -120, opacity: 0 },
+      {
+        xPercent: 120,
+        opacity: 0.55,
+        duration: 3.2,
+        ease: 'power1.inOut',
+        repeat: -1,
+        repeatDelay: 4,
+      }
+    );
+  }
 }
 
 export function initHeaderScroll() {

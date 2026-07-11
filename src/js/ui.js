@@ -11,6 +11,12 @@ import { getShopInfo } from './data.js';
 import { animateCartBadge } from './animations.js';
 import { buildOrderMessagePlain } from './order-message.js';
 import { getMessengerList, MESSENGER_ICONS } from './messengers.js';
+import { submitOrderToBot } from './order-api.js';
+import { initPhoneMask, getPhoneValue } from './phone-mask.js';
+import { initAddressAutocomplete, getAddressValue } from './address-autocomplete.js';
+import { initDeliveryPickers, renderDeliveryPickersHtml } from './datetime-picker.js';
+import { lockBodyScroll, unlockBodyScroll } from './pointer.js';
+import { closeAllDropdowns } from './navigation.js';
 
 let cartModal;
 let cartOverlay;
@@ -42,16 +48,17 @@ function openCart() {
   cartView = 'items';
   renderCart();
   updateCartUI();
+  closeAllDropdowns();
   cartModal?.classList.add('active');
   cartOverlay?.classList.add('active');
-  document.body.classList.add('no-scroll');
+  lockBodyScroll();
 }
 
 function closeCart() {
   cartView = 'items';
   cartModal?.classList.remove('active');
   cartOverlay?.classList.remove('active');
-  document.body.classList.remove('no-scroll');
+  unlockBodyScroll();
 }
 
 function updateCartUI() {
@@ -116,10 +123,17 @@ function renderCart() {
   body.innerHTML = cart
     .map(
       (item) => `
-    <div class="cart-item" data-id="${item.id}">
+    <div class="cart-item" data-key="${item.key || item.id}">
       <img class="cart-item__img" src="${item.image}" alt="${item.alt || item.name}" loading="lazy" width="72" height="72">
       <div class="cart-item__info">
         <div class="cart-item__name">${item.name}</div>
+        ${
+          item.filling
+            ? `<div class="cart-item__meta">Начинка: ${item.filling}${
+                item.fillingExtra ? ` (+${item.fillingExtra} ₽)` : ''
+              }</div>`
+            : ''
+        }
         <div class="cart-item__price">${formatPrice(item.price)}</div>
         <div class="cart-item__controls">
           <button class="cart-item__qty-btn" data-action="decrease" aria-label="Уменьшить количество">−</button>
@@ -133,19 +147,24 @@ function renderCart() {
     .join('');
 
   body.querySelectorAll('.cart-item').forEach((el) => {
-    const id = Number(el.dataset.id);
-    el.querySelector('[data-action="decrease"]')?.addEventListener('click', () => updateQuantity(id, -1));
-    el.querySelector('[data-action="increase"]')?.addEventListener('click', () => updateQuantity(id, 1));
-    el.querySelector('[data-action="remove"]')?.addEventListener('click', () => removeFromCart(id));
+    const key = el.dataset.key;
+    el.querySelector('[data-action="decrease"]')?.addEventListener('click', () => updateQuantity(key, -1));
+    el.querySelector('[data-action="increase"]')?.addEventListener('click', () => updateQuantity(key, 1));
+    el.querySelector('[data-action="remove"]')?.addEventListener('click', () => removeFromCart(key));
   });
 
   if (totalEl) totalEl.textContent = formatPrice(getCartTotal(cart));
 }
 
 function getCheckoutExtras() {
+  const phoneEl = document.getElementById('checkout-phone');
+  const addressEl = document.getElementById('checkout-address');
   return {
     name: document.getElementById('checkout-name')?.value || '',
-    phone: document.getElementById('checkout-phone')?.value || '',
+    phone: phoneEl ? getPhoneValue(phoneEl) : '',
+    address: getAddressValue(addressEl),
+    deliveryDate: document.getElementById('checkout-date')?.value || '',
+    deliveryTime: document.getElementById('checkout-time')?.value || '',
     comment: document.getElementById('checkout-comment')?.value || '',
   };
 }
@@ -170,7 +189,7 @@ function renderCheckoutView() {
 
   body.innerHTML = `
     <div class="cart-checkout">
-      <p class="cart-checkout__lead">Проверьте заказ и выберите удобный мессенджер — сообщение сформируется автоматически.</p>
+      <p class="cart-checkout__lead">Проверьте заказ и выберите мессенджер — сообщение сформируется автоматически.</p>
 
       <div class="cart-checkout__preview">
         <div class="cart-checkout__preview-header">
@@ -184,30 +203,60 @@ function renderCheckoutView() {
 
       <div class="cart-checkout__fields">
         <div class="form-group">
-          <label for="checkout-name">Ваше имя <span class="optional">(необязательно)</span></label>
+          <label for="checkout-name">Ваше имя</label>
           <input type="text" id="checkout-name" placeholder="Как к вам обращаться?" value="${escapeAttr(extras.name)}">
         </div>
         <div class="form-group">
-          <label for="checkout-phone">Телефон <span class="optional">(необязательно)</span></label>
-          <input type="tel" id="checkout-phone" placeholder="+7 (999) 000-00-00" value="${escapeAttr(extras.phone)}">
+          <label for="checkout-phone">Телефон</label>
+          <input type="tel" id="checkout-phone" inputmode="numeric" autocomplete="tel" placeholder="+7 (9XX) XXX-XX-XX" value="${escapeAttr(extras.phone || '+7 (9')}">
+          <span class="field-hint">Формат уже с +7 (9 — просто допишите номер</span>
+        </div>
+        <div class="form-group">
+          <label>Адрес доставки</label>
+          <div id="checkout-address" class="address-field">
+            <div class="address-field__row">
+              <span class="address-field__label">Город</span>
+              <input type="text" data-address-city value="Чебоксары" readonly class="address-field__city">
+            </div>
+            <div class="address-field__row autocomplete-wrap">
+              <span class="address-field__label">Улица</span>
+              <input type="text" data-address-street placeholder="Начните вводить улицу..." autocomplete="off">
+              <ul class="autocomplete" data-address-suggestions></ul>
+            </div>
+            <div class="address-field__row">
+              <span class="address-field__label">Дом</span>
+              <input type="text" data-address-house placeholder="д. 10, кв. 5">
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Дата и время доставки</label>
+          ${renderDeliveryPickersHtml()}
         </div>
         <div class="form-group">
           <label for="checkout-comment">Комментарий <span class="optional">(необязательно)</span></label>
-          <textarea id="checkout-comment" placeholder="Время доставки, пожелания..." rows="2">${escapeHtml(extras.comment)}</textarea>
+          <textarea id="checkout-comment" placeholder="Пожелания к заказу..." rows="2">${escapeHtml(extras.comment)}</textarea>
         </div>
       </div>
 
       <div class="cart-checkout__messengers">
-        <p class="cart-checkout__messengers-title">Отправить заказ через:</p>
+        <p class="cart-checkout__messengers-title">Оформить заказ через</p>
         <div class="messenger-buttons" id="messenger-buttons"></div>
       </div>
     </div>`;
 
+  initPhoneMask(document.getElementById('checkout-phone'));
+  initAddressAutocomplete(document.getElementById('checkout-address'));
+  initDeliveryPickers(document.getElementById('delivery-pickers'), {
+    onChange: updateCheckoutPreview,
+  });
+
   updateCheckoutPreview();
 
-  ['checkout-name', 'checkout-phone', 'checkout-comment'].forEach((id) => {
-    document.getElementById(id)?.addEventListener('input', updateCheckoutPreview);
-  });
+  document.getElementById('checkout-name')?.addEventListener('input', updateCheckoutPreview);
+  document.getElementById('checkout-phone')?.addEventListener('input', updateCheckoutPreview);
+  document.getElementById('checkout-comment')?.addEventListener('input', updateCheckoutPreview);
+  document.getElementById('checkout-address')?.addEventListener('address-change', updateCheckoutPreview);
 
   document.getElementById('copy-order-message')?.addEventListener('click', () => {
     const text = buildOrderMessagePlain(getCart(), getCheckoutExtras());
@@ -225,7 +274,7 @@ function updateCheckoutPreview() {
   const cart = getCart();
   const extras = getCheckoutExtras();
   const message = buildOrderMessagePlain(cart, extras);
-  const messengers = getMessengerList(message);
+  const messengers = getMessengerList(message, { forCheckout: true });
 
   const preview = document.getElementById('order-message-preview');
   if (preview) preview.textContent = message;
@@ -237,28 +286,68 @@ function updateCheckoutPreview() {
     .map(
       (m) => `
     <a
-      href="${m.url}"
+      href="${m.viaBot ? '#' : m.url}"
       class="messenger-btn messenger-btn--${m.id}"
       data-messenger="${m.id}"
-      target="_blank"
-      rel="noopener noreferrer"
+      ${m.viaBot ? '' : 'target="_blank" rel="noopener noreferrer"'}
+      aria-label="${m.label}"
+      title="${
+        m.viaBot
+          ? 'Отправить заказ в Telegram'
+          : m.id === 'max'
+            ? 'Текст скопируется — вставьте в чат'
+            : m.label
+      }"
     >
       <span class="messenger-btn__icon">${MESSENGER_ICONS[m.id]}</span>
-      <span class="messenger-btn__text">
-        <span class="messenger-btn__label">${m.label}</span>
-        <span class="messenger-btn__hint">${m.hint}</span>
-      </span>
-      <span class="messenger-btn__arrow" aria-hidden="true">→</span>
     </a>`
     )
     .join('');
 
   container.querySelectorAll('.messenger-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', async (e) => {
+      const id = btn.dataset.messenger;
+      const messenger = messengers.find((m) => m.id === id);
+      if (!messenger) return;
+
+      if (messenger.viaBot) {
+        e.preventDefault();
+        btn.classList.add('is-loading');
+        try {
+          await submitOrderToBot(
+            messenger.orderApiUrl,
+            getCart(),
+            getCheckoutExtras()
+          );
+          clearCart();
+          closeCart();
+          window.alert('Заказ отправлен в Telegram. Мы скоро свяжемся с вами!');
+        } catch (err) {
+          console.error(err);
+          window.alert(
+            'Не удалось отправить заказ. Проверьте интернет или оформите через WhatsApp / MAX.'
+          );
+        } finally {
+          btn.classList.remove('is-loading');
+        }
+        return;
+      }
+
+      if (messenger.copyMessage) {
+        e.preventDefault();
+        const text = buildOrderMessagePlain(getCart(), getCheckoutExtras());
+        try {
+          await navigator.clipboard.writeText(text);
+        } catch {
+          /* ignore */
+        }
+        window.open(messenger.url, '_blank', 'noopener,noreferrer');
+      }
+
       setTimeout(() => {
         clearCart();
         closeCart();
-      }, 300);
+      }, 400);
     });
   });
 }

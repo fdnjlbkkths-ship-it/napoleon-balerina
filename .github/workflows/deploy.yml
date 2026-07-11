@@ -17,6 +17,10 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     steps:
       - uses: actions/checkout@v4
 
@@ -29,6 +33,8 @@ jobs:
       - run: npm run build
         env:
           GITHUB_REPOSITORY: ${{ github.repository }}
+          VITE_ORDER_API_URL: ${{ secrets.VITE_ORDER_API_URL }}
+          VITE_ORDER_SECRET: ${{ secrets.VITE_ORDER_SECRET }}
 
       - uses: actions/upload-pages-artifact@v3
         with:
@@ -37,6 +43,9 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

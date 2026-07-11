@@ -5,11 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "admin": "vite",
     "build": "vite build",
     "preview": "vite preview"
   },
   "devDependencies": {
+    "playwright": "^1.61.1",
     "sass": "^1.77.0",
+    "sharp": "^0.35.3",
     "vite": "^5.4.0"
   },
   "dependencies": {

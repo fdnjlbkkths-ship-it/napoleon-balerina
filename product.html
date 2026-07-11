@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Карточка товара — Наполеон и Балерина">
+  <title>Товар — Наполеон и Балерина</title>
+  <link rel="icon" type="image/jpeg" href="images/logo.jpg">
+</head>
+<body>
+  <div id="loader" class="loader" aria-hidden="true">
+    <div class="loader__spinner"></div>
+    <p class="loader__text">Наполеон и Балерина</p>
+  </div>
+
+  <header class="header" role="banner">
+    <div class="container header__inner">
+      <a href="index.html" class="header__logo" aria-label="Наполеон и Балерина — на главную">
+        <img class="header__logo-img" src="images/logo.jpg" alt="" width="44" height="44">
+        <span class="header__logo-text">Наполеон и Балерина</span>
+      </a>
+      <nav class="header__nav" aria-label="Основная навигация">
+        <a href="index.html" class="header__link">Главная</a>
+        <a href="menu.html" class="header__link">Меню</a>
+        <a href="about.html" class="header__link">О нас</a>
+        <a href="contacts.html" class="header__link">Контакты</a>
+      </nav>
+      <div class="header__actions">
+        <button id="cart-btn" class="header__cart-btn" aria-label="Открыть корзину">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0020 4H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
+          <span id="cart-count" class="header__cart-count" data-count="0">0</span>
+        </button>
+        <button id="burger" class="header__burger" aria-label="Открыть меню">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <nav id="mobile-menu" class="mobile-menu" aria-label="Мобильное меню">
+    <ul class="mobile-menu__list">
+      <li><a href="index.html" class="mobile-menu__link">Главная</a></li>
+      <li><a href="menu.html" class="mobile-menu__link">Меню</a></li>
+      <li><a href="about.html" class="mobile-menu__link">О нас</a></li>
+      <li><a href="contacts.html" class="mobile-menu__link">Контакты</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <section class="section product-section">
+      <div class="container">
+        <div id="product-page"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer" role="contentinfo">
+    <div class="container">
+      <div class="footer__grid">
+        <div>
+          <div class="footer__brand" data-shop="name">Наполеон и Балерина</div>
+          <p class="footer__text" data-shop="footerText">Кондитерская, где каждый десерт — произведение искусства.</p>
+        </div>
+        <div>
+          <h3 class="footer__title">Навигация</h3>
+          <a href="index.html" class="footer__link">Главная</a>
+          <a href="menu.html" class="footer__link">Меню</a>
+          <a href="about.html" class="footer__link">О нас</a>
+          <a href="contacts.html" class="footer__link">Контакты</a>
+        </div>
+        <div>
+          <h3 class="footer__title">Контакты</h3>
+          <a href="tel:+79516806915" class="footer__link" data-shop="phone">+7 (951) 680-69-15</a>
+          <a href="mailto:89030633443@mail.ru" class="footer__link" data-shop="email">89030633443@mail.ru</a>
+          <span class="footer__link" data-shop="address">г. Чебоксары, ул. Лесная 7.</span>
+        </div>
+      </div>
+      <div class="footer__bottom">&copy; 2026 <span data-shop="name">Наполеон и Балерина</span>. Все права защищены.</div>
+    </div>
+  </footer>
+
+  <div id="cart-overlay" class="modal-overlay" aria-hidden="true"></div>
+  <aside id="cart-modal" class="cart-modal" role="dialog" aria-label="Корзина" aria-modal="true">
+    <div class="cart-modal__header">
+      <h2 class="cart-modal__title" id="cart-title">Корзина</h2>
+      <button id="cart-close" class="cart-modal__close" aria-label="Закрыть корзину">&times;</button>
+    </div>
+    <div id="cart-body" class="cart-modal__body"></div>
+    <div id="cart-footer-items" class="cart-modal__footer cart-modal__footer-panel">
+      <div class="cart-modal__total">
+        <span>Итого:</span>
+        <span id="cart-total-price">0 ₽</span>
+      </div>
+      <button id="cart-checkout" class="btn btn--primary btn--full">Оформить заказ</button>
+    </div>
+    <div id="cart-footer-checkout" class="cart-modal__footer cart-modal__footer-panel hidden">
+      <div class="cart-modal__total">
+        <span>Итого:</span>
+        <span id="cart-checkout-total">0 ₽</span>
+      </div>
+      <button type="button" id="cart-back" class="btn btn--ghost btn--full">← Вернуться в корзину</button>
+    </div>
+  </aside>
+
+  <script type="module" src="/src/js/main.js"></script>
+</body>
+</html>

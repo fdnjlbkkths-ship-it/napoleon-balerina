@@ -65,6 +65,7 @@ napoleon-balerina/
 ├── menu.html               # Меню
 ├── about.html              # О нас
 ├── contacts.html           # Контакты
+├── order-bot/              # Cloudflare Worker + Telegram-бот заказов
 ├── .github/workflows/      # Автодеплой на Pages
 └── src/
     ├── data/products.json  # Товары, контакты, мессенджеры
@@ -79,18 +80,33 @@ napoleon-balerina/
 | Раздел | Содержимое |
 |--------|------------|
 | `products` | Товары, цены, фото |
-| `shop.messengers` | WhatsApp, Telegram (`PiterSPB109`), MAX |
+| `shop.messengers` | WhatsApp, Telegram (`PiterSPB109`), MAX; `telegram.botOrderUrl` — URL Worker бота |
 | `shop` | Название, телефон, адрес |
 
 ## Мессенджеры для заказа
 
-- **WhatsApp** — номер в `shop.messengers.whatsapp.phone`
-- **Telegram** — `@PiterSPB109`
-- **MAX** — username в `shop.messengers.max`
+- **WhatsApp** — номер в `shop.messengers.whatsapp.phone` (открывает чат с текстом заказа)
+- **Telegram** — если настроен бот заказов, кнопка шлёт заказ в Telegram-список; иначе deep link на `@PiterSPB109`
+- **MAX** — копирует текст и открывает чат
+
+### Telegram-бот списка заказов
+
+Сайт на GitHub Pages не может держать токен бота. Заказы принимает Cloudflare Worker в папке [`order-bot/`](order-bot/).
+
+Краткая схема:
+
+1. Создайте бота у [@BotFather](https://t.me/BotFather), узнайте свой `chat_id`
+2. Задеплойте Worker — инструкция: [`order-bot/README.md`](order-bot/README.md)
+3. В корне сайта скопируйте [`.env.example`](.env.example) → `.env` и укажите `VITE_ORDER_API_URL`
+4. Пересоберите сайт (`npm run build` или push в `main`)
+
+Для GitHub Actions добавьте секреты репозитория `VITE_ORDER_API_URL` (и при необходимости `VITE_ORDER_SECRET`) и пробросьте их в шаг сборки как `env`.
+
+Команды бота: `/orders`, `/done`, `/help`. Статусы заказа — кнопками под сообщением.
 
 ## Технологии
 
-HTML5 · SCSS · JavaScript · Vite · GSAP · GitHub Pages
+HTML5 · SCSS · JavaScript · Vite · GSAP · GitHub Pages · Cloudflare Workers (бот)
 
 ## Лицензия
 
