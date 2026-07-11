@@ -1,0 +1,234 @@
+{
+  "categories": [
+    { "id": "cakes", "name": "Торты", "icon": "🎂", "image": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&q=80" },
+    { "id": "pastries", "name": "Пирожные", "icon": "🧁", "image": "https://images.unsplash.com/photo-1614707267537-b85adf62fa8f?w=600&q=80" },
+    { "id": "cookies", "name": "Печенье", "icon": "🍪", "image": "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=600&q=80" },
+    { "id": "desserts", "name": "Десерты", "icon": "🍮", "image": "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=600&q=80" },
+    { "id": "drinks", "name": "Напитки", "icon": "☕", "image": "https://images.unsplash.com/photo-1511920170033-f8396924c348?w=600&q=80" }
+  ],
+  "products": [
+    {
+      "id": 1,
+      "name": "Торт «Наполеон»",
+      "category": "cakes",
+      "price": 890,
+      "description": "Классический слоёный торт с нежным заварным кремом",
+      "image": "https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=600&q=80",
+      "alt": "Торт Наполеон со слоями теста и кремом"
+    },
+    {
+      "id": 2,
+      "name": "Торт «Медовик»",
+      "category": "cakes",
+      "price": 750,
+      "description": "Медовые коржи с сметанным кремом",
+      "image": "https://images.unsplash.com/photo-1621303834194-47464785beb0?w=600&q=80",
+      "alt": "Медовый торт Медовик"
+    },
+    {
+      "id": 3,
+      "name": "Красный бархат",
+      "category": "cakes",
+      "price": 1200,
+      "description": "Бархатный бисквит с крем-чизом",
+      "image": "https://images.unsplash.com/photo-1586788680434-30d3246752ea?w=600&q=80",
+      "alt": "Торт Красный бархат"
+    },
+    {
+      "id": 4,
+      "name": "Чизкейк Нью-Йорк",
+      "category": "cakes",
+      "price": 980,
+      "description": "Классический плотный чизкейк на песочной основе",
+      "image": "https://images.unsplash.com/photo-1524351199678-941a58a3df50?w=600&q=80",
+      "alt": "Чизкейк Нью-Йорк"
+    },
+    {
+      "id": 5,
+      "name": "Эклер шоколадный",
+      "category": "pastries",
+      "price": 180,
+      "description": "Воздушное тесто с шоколадным кремом и глазурью",
+      "image": "https://images.unsplash.com/photo-1612203985729-7071b7d27b8f?w=600&q=80",
+      "alt": "Шоколадный эклер"
+    },
+    {
+      "id": 6,
+      "name": "Набор макарон",
+      "category": "pastries",
+      "price": 450,
+      "description": "6 миниатюрных макарон ассорти",
+      "image": "https://images.unsplash.com/photo-1569864358642-9d1684040f0b?w=600&q=80",
+      "alt": "Разноцветные французские макарон"
+    },
+    {
+      "id": 7,
+      "name": "Тирамису",
+      "category": "pastries",
+      "price": 320,
+      "description": "Итальянский десерт с маскарпоне и кофе",
+      "image": "https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=600&q=80",
+      "alt": "Порция тирамису в стакане"
+    },
+    {
+      "id": 8,
+      "name": "Профитроли",
+      "category": "pastries",
+      "price": 280,
+      "description": "Три профитроля с ванильным кремом",
+      "image": "https://images.unsplash.com/photo-1551024506-0bccd828d307?w=600&q=80",
+      "alt": "Профитроли с кремом"
+    },
+    {
+      "id": 9,
+      "name": "Овсяное печенье",
+      "category": "cookies",
+      "price": 250,
+      "description": "Домашнее печенье с изюмом и орехами",
+      "image": "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=600&q=80",
+      "alt": "Овсяное печенье с изюмом"
+    },
+    {
+      "id": 10,
+      "name": "Шоколадное печенье",
+      "category": "cookies",
+      "price": 220,
+      "description": "Хрустящее печенье с кусочками шоколада",
+      "image": "https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=600&q=80",
+      "alt": "Шоколадное печенье"
+    },
+    {
+      "id": 11,
+      "name": "Имбирное печенье",
+      "category": "cookies",
+      "price": 190,
+      "description": "Ароматное печенье с корицей и имбирём",
+      "image": "https://images.unsplash.com/photo-1606890737304-57a1ca8a5b62?w=600&q=80",
+      "alt": "Имбирное печенье в форме звёзд"
+    },
+    {
+      "id": 12,
+      "name": "Безе",
+      "category": "cookies",
+      "price": 150,
+      "description": "Воздушное безе с хрустящей корочкой",
+      "image": "https://images.unsplash.com/photo-1607922267115-4f2055f5f669?w=600&q=80",
+      "alt": "Белое безе на тарелке"
+    },
+    {
+      "id": 13,
+      "name": "Панна-котта",
+      "category": "desserts",
+      "price": 350,
+      "description": "Нежный итальянский десерт с ягодным соусом",
+      "image": "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=600&q=80",
+      "alt": "Панна-котта с ягодами"
+    },
+    {
+      "id": 14,
+      "name": "Крем-брюле",
+      "category": "desserts",
+      "price": 380,
+      "description": "Ванильный крем с карамельной корочкой",
+      "image": "https://images.unsplash.com/photo-1476124369491-e7addf5bb371?w=600&q=80",
+      "alt": "Крем-брюле с карамельной корочкой"
+    },
+    {
+      "id": 15,
+      "name": "Шоколадный мусс",
+      "category": "desserts",
+      "price": 340,
+      "description": "Лёгкий мусс из тёмного шоколада",
+      "image": "https://images.unsplash.com/photo-1541783245831-57aa4f0160b9?w=600&q=80",
+      "alt": "Шоколадный мусс в бокале"
+    },
+    {
+      "id": 16,
+      "name": "Фруктовый тарт",
+      "category": "desserts",
+      "price": 420,
+      "description": "Хрустящая основа с кремом и свежими фруктами",
+      "image": "https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=600&q=80",
+      "alt": "Фруктовый тарт с ягодами"
+    },
+    {
+      "id": 17,
+      "name": "Латте",
+      "category": "drinks",
+      "price": 280,
+      "description": "Кофе с молоком и нежной пенкой",
+      "image": "https://images.unsplash.com/photo-1561882468-8940e64f2a28?w=600&q=80",
+      "alt": "Кофе латте с латте-артом"
+    },
+    {
+      "id": 18,
+      "name": "Горячее какао",
+      "category": "drinks",
+      "price": 250,
+      "description": "Густое какао с маршмеллоу",
+      "image": "https://images.unsplash.com/photo-1542990253-0d0f8475aec9?w=600&q=80",
+      "alt": "Горячее какао с маршмеллоу"
+    },
+    {
+      "id": 19,
+      "name": "Матча-латте",
+      "category": "drinks",
+      "price": 320,
+      "description": "Японский зелёный чай с молоком",
+      "image": "https://images.unsplash.com/photo-1515823064-d6e0c046ca37?w=600&q=80",
+      "alt": "Матча-латте зелёного цвета"
+    },
+    {
+      "id": 20,
+      "name": "Домашний лимонад",
+      "category": "drinks",
+      "price": 200,
+      "description": "Освежающий лимонад с мятой и лимоном",
+      "image": "https://images.unsplash.com/photo-1523677011783-207042157e3f?w=600&q=80",
+      "alt": "Домашний лимонад с лимоном и мятой"
+    }
+  ],
+  "reviews": [
+    {
+      "id": 1,
+      "name": "Анна Петрова",
+      "text": "Невероятно нежные торты! Заказывали на день рождения — все гости были в восторге.",
+      "rating": 5
+    },
+    {
+      "id": 2,
+      "name": "Дмитрий Соколов",
+      "text": "Лучшие макарон в городе. Атмосфера уютная, персонал внимательный.",
+      "rating": 5
+    },
+    {
+      "id": 3,
+      "name": "Елена Морозова",
+      "text": "Печенье как у бабушки — домашнее и ароматное. Обязательно вернёмся!",
+      "rating": 5
+    }
+  ],
+  "shop": {
+    "name": "Наполеон и Балерина",
+    "tagline": "Сладкие шедевры вашего стола",
+    "phone": "+7 (495) 123-45-67",
+    "email": "hello@napoleon-balerina.ru",
+    "address": "г. Москва, ул. Кондитерская, д. 12",
+    "hours": "Пн–Вс: 9:00 – 21:00",
+    "orderEmail": "orders@napoleon-balerina.ru",
+    "messengers": {
+      "whatsapp": {
+        "phone": "+74951234567",
+        "label": "WhatsApp"
+      },
+      "telegram": {
+        "username": "PiterSPB109",
+        "label": "Telegram"
+      },
+      "max": {
+        "username": "napoleon_balerina",
+        "label": "MAX"
+      }
+    }
+  }
+}

@@ -1,0 +1,30 @@
+// Pastel palette & typography
+$color-cream: #faf7f2;
+$color-blush: #f5e6e8;
+$color-rose: #e8b4b8;
+$color-caramel: #c4956a;
+$color-chocolate: #5c4033;
+$color-text: #4a3728;
+$color-text-light: #8b7355;
+$color-white: #ffffff;
+$color-overlay: rgba(74, 55, 40, 0.6);
+
+$font-heading: 'Cormorant Garamond', 'Georgia', serif;
+$font-body: 'Montserrat', 'Segoe UI', sans-serif;
+
+$radius-sm: 8px;
+$radius-md: 16px;
+$radius-lg: 24px;
+$radius-full: 9999px;
+
+$shadow-sm: 0 2px 8px rgba(92, 64, 51, 0.08);
+$shadow-md: 0 8px 24px rgba(92, 64, 51, 0.12);
+$shadow-lg: 0 16px 48px rgba(92, 64, 51, 0.16);
+
+$transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+$header-height: 72px;
+
+$breakpoint-sm: 480px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 1024px;
+$breakpoint-xl: 1280px;
