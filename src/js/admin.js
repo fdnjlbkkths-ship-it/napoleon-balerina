@@ -1,5 +1,6 @@
 import '../scss/admin.scss';
 import { smartMatchAny } from './smart-search.js';
+import { formatSizeDisplay } from './format-size.js';
 
 const DRAFT_KEY = 'napoleon-admin-draft';
 const PIN_KEY = 'napoleon-admin-pin';
@@ -375,7 +376,7 @@ function selectProduct(id, { skipFlush = false } = {}) {
   $('#field-price').value = product.price ?? '';
   $('#field-priceOld').value = product.priceOld ?? '';
   $('#field-weight').value = product.weight || '';
-  $('#field-size').value = product.size || '';
+  $('#field-size').value = formatSizeDisplay(product.size || '');
   $('#field-prepTime').value = product.prepTime || '';
   $('#field-shelfLife').value = product.shelfLife || '';
   $('#field-description').value = product.description || '';
@@ -408,7 +409,7 @@ function flushEditorToCatalog() {
   const old = $('#field-priceOld').value;
   product.priceOld = old === '' ? null : Number(old) || null;
   product.weight = $('#field-weight').value.trim() || null;
-  product.size = $('#field-size').value.trim() || null;
+  product.size = formatSizeDisplay($('#field-size').value.trim()) || null;
   product.prepTime = $('#field-prepTime').value.trim() || null;
   product.shelfLife = $('#field-shelfLife').value.trim() || null;
   product.description = $('#field-description').value.trim();

@@ -10,6 +10,7 @@ import {
   renderFillingDropdown,
 } from './fillings.js';
 import { getProductCompositionLines } from './composition.js';
+import { formatSizeDisplay } from './format-size.js';
 
 /** Убирает из текста то, что уже показано отдельными блоками (вес/размер/срок/выбор начинки). */
 function cleanProductDescription(text, { hasSpecs, hasFillingChoice }) {
@@ -100,7 +101,7 @@ export function initProductPage() {
       ? `<div class="product-page__spec"><span class="product-page__spec-label">Вес</span><span class="product-page__spec-value">${escapeHtml(product.weight)}</span></div>`
       : '',
     product.size
-      ? `<div class="product-page__spec"><span class="product-page__spec-label">Размер</span><span class="product-page__spec-value">${escapeHtml(product.size)}</span></div>`
+      ? `<div class="product-page__spec"><span class="product-page__spec-label">Размер</span><span class="product-page__spec-value">${escapeHtml(formatSizeDisplay(product.size))}</span></div>`
       : '',
     product.prepTime
       ? `<div class="product-page__spec"><span class="product-page__spec-label">Изготовление</span><span class="product-page__spec-value">${escapeHtml(product.prepTime)}</span></div>`

@@ -16,6 +16,7 @@ import {
   initFillingDropdowns,
   renderFillingDropdown,
 } from './fillings.js';
+import { formatSizeDisplay } from './format-size.js';
 
 function menuUrl(category, subcategory) {
   const base = `menu.html?category=${category}`;
@@ -337,7 +338,7 @@ function createProductCard(product) {
       ? `<p class="product-card__spec"><span class="product-card__meta-label">Вес</span><span class="product-card__spec-value">${escapeAttr(product.weight)}</span></p>`
       : '',
     product.size
-      ? `<p class="product-card__spec"><span class="product-card__meta-label">Размер</span><span class="product-card__spec-value">${escapeAttr(product.size)}</span></p>`
+      ? `<p class="product-card__spec"><span class="product-card__meta-label">Размер</span><span class="product-card__spec-value">${escapeAttr(formatSizeDisplay(product.size))}</span></p>`
       : '',
     product.prepTime
       ? `<p class="product-card__spec"><span class="product-card__meta-label">Изготовление</span><span class="product-card__spec-value">${escapeAttr(product.prepTime)}</span></p>`
