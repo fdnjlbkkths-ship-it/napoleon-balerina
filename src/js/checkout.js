@@ -155,10 +155,10 @@ function validateStep1() {
   let ok = true;
 
   if (!name) {
-    setFieldError('[data-checkout-name-group]', '#checkout-name', '#checkout-name-error', 'Укажите имя', true);
+    const nameInput = document.getElementById('checkout-name');
+    nameInput?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(() => nameInput?.focus({ preventScroll: true }), 280);
     ok = false;
-  } else {
-    setFieldError('[data-checkout-name-group]', '#checkout-name', '#checkout-name-error', '', false);
   }
 
   if (!phoneOk) {
@@ -262,7 +262,6 @@ function renderStepPanel() {
         <div class="form-group" data-checkout-name-group>
           <label for="checkout-name">Имя <span class="required-mark" aria-hidden="true">*</span></label>
           <input type="text" id="checkout-name" autocomplete="name" placeholder="Как к вам обращаться?" value="${escapeAttr(draft.name || '')}" required>
-          <span class="field-error" id="checkout-name-error" hidden>Укажите имя</span>
         </div>
         <div class="form-group" data-checkout-phone-group>
           <label for="checkout-phone">Телефон <span class="required-mark" aria-hidden="true">*</span></label>
@@ -281,7 +280,15 @@ function renderStepPanel() {
         <a class="btn btn--ghost" href="menu.html">← В меню</a>
         <button type="button" class="btn btn--primary" data-checkout-next>Далее</button>
       </div>`;
-    initPhoneMask(document.getElementById('checkout-phone'));
+    const phoneInput = document.getElementById('checkout-phone');
+    initPhoneMask(phoneInput);
+    const clearValidPhoneError = () => {
+      if (isPhoneComplete(phoneInput)) {
+        setFieldError('[data-checkout-phone-group]', '#checkout-phone', '#checkout-phone-error', '', false);
+      }
+    };
+    phoneInput?.addEventListener('input', clearValidPhoneError);
+    phoneInput?.addEventListener('change', clearValidPhoneError);
   } else if (step === 2) {
     const mode = draft.mode || 'pickup';
     panel.innerHTML = `
