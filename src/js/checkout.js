@@ -7,8 +7,7 @@ import {
   consumeCartExpiredFlag,
 } from './cart.js';
 import { getShopInfo } from './data.js';
-import { buildOrderMessagePlain } from './order-message.js';
-import { getMessengerLinks, getTelegramChatUrl, MESSENGER_ICONS } from './messengers.js';
+import { MESSENGER_ICONS } from './messengers.js';
 import { submitOrderToBot, OrderChallengeRequiredError, getOrderApiUrl } from './order-api.js';
 import { initPhoneMask, getPhoneValue, isPhoneComplete } from './phone-mask.js';
 import { isValidEmail, normalizeEmail } from './email-otp.js';
@@ -468,7 +467,7 @@ function renderStepPanel() {
           <span class="checkout-choice__icon" aria-hidden="true">${CONFIRM_ICONS.telegram}</span>
           <span class="checkout-choice__body">
             <strong>Telegram</strong>
-            <small>После оформления откроем чат — напишите нам для подтверждения</small>
+            <small>Наш менеджер свяжется с вами в Telegram</small>
           </span>
         </label>
         <label class="checkout-choice__option">
@@ -507,26 +506,18 @@ function renderStepPanel() {
     bindConfirmChoices();
     panel.querySelector('[data-checkout-submit]')?.addEventListener('click', onSubmitOrder);
   } else {
-    const shop = getShopInfo();
-    const phone = shop.phone || '';
-    const waPhone = shop.messengers?.whatsapp?.phone || phone;
-    const waDigits = String(waPhone).replace(/\D/g, '');
-    const waUrl = waDigits ? `https://wa.me/${waDigits}` : '#';
     const total = orderResult?.total ?? 0;
     const orderId = orderResult?.orderId || '';
     const sbpReady = isSbpLinkConfigured();
-    const channel = orderResult?.confirmChannel || 'phone';
-    const confirmBlock = renderSuccessConfirmBlock(channel, orderResult);
 
     panel.innerHTML = `
       <h1 class="checkout-panel__title">Заказ оформлен</h1>
-      <p class="checkout-panel__lead">${escapeHtml(successLeadForChannel(channel))}</p>
+      <p class="checkout-panel__lead">Спасибо! Заказ принят. Наш менеджер свяжется с вами.</p>
       ${
         orderId
           ? `<p class="checkout-success__id">Номер заказа: <strong>${escapeHtml(orderId)}</strong></p>`
           : ''
       }
-      ${confirmBlock}
       <div class="checkout-pay-card">
         <div class="checkout-pay-card__row"><span>Сумма</span><strong>${escapeHtml(formatPrice(total))}</strong></div>
         <div class="checkout-pay-card__row"><span>Оплата</span><strong>ожидает (СБП)</strong></div>
@@ -538,10 +529,6 @@ function renderStepPanel() {
           ? ''
           : '<p class="checkout-pay-card__setup">Подставьте реальную ссылку СБП в src/js/sbp-payment.js → поле link.</p>'
       }
-      <div class="checkout-success__contacts">
-        ${phone ? `<a href="tel:${escapeAttr(phone.replace(/\s/g, ''))}">${escapeHtml(phone)}</a>` : ''}
-        ${waDigits ? `<a href="${escapeAttr(waUrl)}" target="_blank" rel="noopener noreferrer">WhatsApp</a>` : ''}
-      </div>
       <div class="checkout-actions">
         <a class="btn btn--ghost" href="menu.html">В меню</a>
         <a class="btn btn--ghost" href="index.html">На главную</a>
@@ -556,76 +543,6 @@ function bindConfirmChoices() {
   document.querySelectorAll('input[name="confirm-channel"], input[name="payment"]').forEach((el) => {
     el.addEventListener('change', () => persistVisibleFields());
   });
-}
-
-function successLeadForChannel(channel) {
-  if (channel === 'telegram') {
-    return 'Спасибо! Заказ принят. Подтвердите его в Telegram — кнопка ниже откроет чат с готовым текстом заказа.';
-  }
-  if (channel === 'max') {
-    return 'Спасибо! Заказ принят. Напишите нам в MAX для подтверждения — или оплатите по СБП ниже.';
-  }
-  return 'Спасибо! Мы получили заказ и перезвоним вам для подтверждения.';
-}
-
-function buildConfirmMessage(result) {
-  const items = result?.items || [];
-  const extras = {
-    ...(result?.extras || {}),
-    orderId: result?.orderId || '',
-    confirmChannel: result?.confirmChannel || result?.extras?.confirmChannel || 'phone',
-  };
-  return buildOrderMessagePlain(items, extras);
-}
-
-function getConfirmTelegramUrl(result) {
-  const message = buildConfirmMessage(result);
-  return getTelegramChatUrl(message);
-}
-
-function renderSuccessConfirmBlock(channel, result) {
-  if (channel === 'telegram') {
-    const tgUrl = getConfirmTelegramUrl(result);
-    const tgUser = getShopInfo().messengers?.telegram?.username?.replace(/^@/, '') || '';
-    if (!tgUrl) {
-      return `<p class="checkout-success__note">Напишите нам в Telegram для подтверждения заказа.</p>`;
-    }
-    return `
-      <div class="checkout-success__confirm checkout-success__confirm--telegram">
-        <a class="btn btn--primary btn--full checkout-success__tg-btn" href="${escapeAttr(tgUrl)}" target="_blank" rel="noopener noreferrer">
-          Подтвердить в Telegram
-        </a>
-        <p class="field-hint">Откроется чат${tgUser ? ` @${escapeHtml(tgUser)}` : ''} с текстом заказа — просто отправьте сообщение.</p>
-      </div>`;
-  }
-
-  if (channel === 'phone') {
-    return `<p class="checkout-success__note">Мы перезвоним на указанный номер для подтверждения заказа.</p>`;
-  }
-
-  if (channel === 'max') {
-    const maxUrl = getShopInfo().messengers?.max?.chatUrl || '';
-    if (maxUrl) {
-      return `
-        <div class="checkout-success__confirm">
-          <a class="btn btn--ghost btn--full" href="${escapeAttr(maxUrl)}" target="_blank" rel="noopener noreferrer">Написать в MAX</a>
-          <p class="field-hint">Откройте чат и напишите номер заказа для подтверждения.</p>
-        </div>`;
-    }
-    return `<p class="checkout-success__note">Мы свяжемся с вами в MAX для подтверждения заказа.</p>`;
-  }
-
-  return '';
-}
-
-function tryOpenTelegramConfirm(result) {
-  const url = getConfirmTelegramUrl(result);
-  if (!url) return;
-  try {
-    window.open(url, '_blank', 'noopener,noreferrer');
-  } catch {
-    /* popup may be blocked — кнопка на экране успеха обязательна */
-  }
 }
 
 async function onSubmitOrder(e) {
@@ -655,53 +572,10 @@ async function onSubmitOrder(e) {
         extras,
       };
       finishOrder(result);
-      if (extras.confirmChannel === 'telegram') {
-        tryOpenTelegramConfirm(result);
-      }
       return;
     }
 
-    // Fallback without order API: open preferred messenger with order text
-    const message = buildOrderMessagePlain(cartSnapshot, extras);
-    const links = getMessengerLinks(message, { forCheckout: true });
-    const channel = extras.confirmChannel;
-
-    if (channel === 'telegram') {
-      const tgUrl = getTelegramChatUrl(message) || links.telegram?.url;
-      if (tgUrl && tgUrl !== '#') {
-        window.open(tgUrl, '_blank', 'noopener,noreferrer');
-      } else {
-        window.alert(
-          'Укажите username Telegram магазина в products.json (shop.messengers.telegram.username).'
-        );
-        return;
-      }
-    } else if (channel === 'max' && links.max) {
-      try {
-        await navigator.clipboard.writeText(message);
-      } catch {
-        /* ignore */
-      }
-      window.open(links.max.url, '_blank', 'noopener,noreferrer');
-    } else if (channel === 'phone') {
-      const shop = getShopInfo();
-      if (shop.phone) {
-        window.location.href = `tel:${String(shop.phone).replace(/\D/g, '')}`;
-      }
-    } else {
-      window.alert(
-        'API заказов не настроен. Напишите нам в Telegram или MAX и отправьте текст заказа вручную.'
-      );
-      return;
-    }
-
-    finishOrder({
-      orderId: '',
-      total,
-      items: cartSnapshot.map((item) => ({ ...item })),
-      confirmChannel: extras.confirmChannel,
-      extras,
-    });
+    window.alert('Сервис оформления заказов временно недоступен. Попробуйте ещё раз позже.');
   } catch (err) {
     console.error(err);
     if (err instanceof OrderChallengeRequiredError) {
