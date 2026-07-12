@@ -16,6 +16,7 @@ import {
   initFillingDropdowns,
   renderFillingDropdown,
 } from './fillings.js';
+import { getProductCompositionLines } from './composition.js';
 
 function menuUrl(category, subcategory) {
   const base = `menu.html?category=${category}`;
@@ -331,10 +332,34 @@ function createProductCard(product) {
   const fillings = Array.isArray(product.fillings) ? product.fillings : [];
   const initialFilling = fillings[0] || '';
   const initialPrice = getPriceWithFilling(product.price, initialFilling);
-  let cardDesc = product.description || '';
-  if (fillings.length > 1) {
-    cardDesc = cardDesc.replace(/\s*Начинки\s*:\s*.+$/i, '').trim();
-  }
+  const compositionLines = getProductCompositionLines(product);
+  const previewLines = compositionLines.slice(0, 4);
+  const hasMoreComposition = compositionLines.length > 4;
+
+  const compositionHtml = previewLines.length
+    ? `<div class="product-card__meta-block">
+        <p class="product-card__meta-label">Состав</p>
+        <ul class="product-card__composition">
+          ${previewLines.map((l) => `<li>${escapeAttr(l)}</li>`).join('')}
+        </ul>
+        ${
+          hasMoreComposition
+            ? `<span class="product-card__composition-more">Ещё ${compositionLines.length - 4} — на странице товара</span>`
+            : ''
+        }
+      </div>`
+    : '';
+
+  const specsHtml = [
+    product.weight
+      ? `<p class="product-card__spec"><span class="product-card__meta-label">Вес</span><span class="product-card__spec-value">${escapeAttr(product.weight)}</span></p>`
+      : '',
+    product.size
+      ? `<p class="product-card__spec"><span class="product-card__meta-label">Размер</span><span class="product-card__spec-value">${escapeAttr(product.size)}</span></p>`
+      : '',
+  ]
+    .filter(Boolean)
+    .join('');
 
   return `
     <article class="product-card" data-animate data-id="${product.id}" data-base-price="${product.price}">
@@ -346,12 +371,8 @@ function createProductCard(product) {
           <div class="product-card__category">${getProductCategoryLabel(product)}</div>
           <h3 class="product-card__name">${escapeAttr(product.name)}</h3>
           <p class="product-card__price" data-price>${formatPrice(initialPrice)}</p>
-          <p class="product-card__desc">${escapeAttr(cardDesc)}</p>
-          ${
-            product.weight
-              ? `<p class="product-card__weight"><span class="product-card__meta-label">Вес</span>${escapeAttr(product.weight)}</p>`
-              : ''
-          }
+          ${compositionHtml}
+          ${specsHtml}
         </div>
       </a>
       <div class="product-card__footer">

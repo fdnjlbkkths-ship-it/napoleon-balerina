@@ -9,6 +9,7 @@ import {
   initFillingDropdowns,
   renderFillingDropdown,
 } from './fillings.js';
+import { getProductCompositionLines } from './composition.js';
 
 /** Убирает из текста то, что уже показано отдельными блоками (вес/размер/срок/выбор начинки). */
 function cleanProductDescription(text, { hasSpecs, hasFillingChoice }) {
@@ -23,41 +24,24 @@ function cleanProductDescription(text, { hasSpecs, hasFillingChoice }) {
     out = out.replace(/\n*Начинки\s*:\s*.+$/gim, '');
   }
 
+  // Состав выносится в отдельный блок
+  out = out.replace(/\n*Состав\s*:[\s\S]*$/i, '');
+
   return out.replace(/\n{3,}/g, '\n\n').trim();
-}
-
-function formatCompositionLines(raw) {
-  const text = String(raw || '').trim();
-  if (!text) return [];
-
-  if (/\n/.test(text)) {
-    return text
-      .split(/\n/)
-      .map((l) => l.replace(/^[•\-*–—]\s*/, '').trim())
-      .filter(Boolean);
-  }
-
-  return text
-    .split(/[•∙·]/)
-    .map((l) => l.replace(/^[,;\s]+|[,;\s]+$/g, '').trim())
-    .filter(Boolean);
 }
 
 /** Отделяет описание от состава. */
 function splitDescriptionAndComposition(fullText, product) {
   let narrative = fullText;
-  let compositionRaw = product.composition || '';
 
   if (/Состав\s*:/i.test(fullText)) {
     const parts = fullText.split(/\n*Состав\s*:\s*\n?/i);
     narrative = (parts[0] || '').trim();
-    const fromText = (parts.slice(1).join('\n') || '').trim();
-    if (fromText) compositionRaw = fromText;
   }
 
   return {
     narrative: narrative.trim(),
-    compositionLines: formatCompositionLines(compositionRaw),
+    compositionLines: getProductCompositionLines(product),
   };
 }
 
