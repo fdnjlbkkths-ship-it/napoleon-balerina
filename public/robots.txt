@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /checkout.html
+
+Sitemap: https://fdnjlbkkths-ship-it.github.io/napoleon-balerina/sitemap.xml

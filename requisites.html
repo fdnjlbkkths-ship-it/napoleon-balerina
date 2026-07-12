@@ -3,9 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="description" content="Меню кондитерской Наполеон и Балерина — 20 позиций: торты, пирожные, печенье, десерты и напитки. Закажите онлайн.">
-  <meta name="keywords" content="меню, торты, пирожные, заказ, кондитерская">
-  <title>Меню — Наполеон и Балерина</title>
+  <meta name="description" content="Реквизиты продавца кондитерской Наполеон и Балерина — самозанятый, контакты, адрес.">
+  <title>Реквизиты продавца — Наполеон и Балерина</title>
   <link rel="icon" type="image/jpeg" href="images/logo.jpg">
 </head>
 <body>
@@ -50,31 +49,53 @@
   <main>
     <header class="page-header">
       <div class="container">
-        <h1 data-animate>Наше меню</h1>
-        <p class="section__subtitle" data-animate>Авторские позиции — от классики до праздничных тортов на заказ</p>
+        <h1 data-animate>Реквизиты продавца</h1>
+        <p class="section__subtitle" data-animate>Информация для покупателей и претензий</p>
       </div>
     </header>
 
-    <section class="section" aria-label="Каталог товаров">
+    <section class="section">
       <div class="container">
-        <div class="products__search" data-animate>
-          <div class="form-group">
-            <label for="product-search" class="sr-only">Поиск по меню</label>
-            <input type="search" id="product-search" placeholder="🔍 Поиск: Анна Павлова" aria-label="Поиск товаров">
-          </div>
-        </div>
-        <div id="category-filters" class="products__filters" data-animate role="tablist" aria-label="Фильтр по категориям"></div>
-        <div class="products__toolbar" data-animate>
-          <div class="products__sort">
-            <span class="products__toolbar-label" id="sort-label">Сортировка</span>
-            <div id="product-sort" class="toolbar-dropdown" data-toolbar-dropdown aria-labelledby="sort-label"></div>
-          </div>
-          <div class="products__max-price">
-            <span class="products__toolbar-label" id="max-price-label">До цены</span>
-            <div id="product-max-price" class="toolbar-dropdown" data-toolbar-dropdown aria-labelledby="max-price-label"></div>
-          </div>
-        </div>
-        <div id="products-grid" class="products__grid"></div>
+        <article class="privacy__section legal__card" data-animate>
+          <h2>Кондитерская «<span data-legal="shopName"></span>»</h2>
+          <dl class="legal__dl">
+            <dt>Продавец (ФИО)</dt>
+            <dd data-legal="sellerName"></dd>
+            <dt>Правовой статус</dt>
+            <dd data-legal="sellerStatus"></dd>
+            <dt>ИНН</dt>
+            <dd data-legal="sellerInn"></dd>
+            <dt>Город</dt>
+            <dd data-legal="sellerCity"></dd>
+            <dt>Адрес самовывоза</dt>
+            <dd data-legal="sellerAddress"></dd>
+            <dt>Телефон</dt>
+            <dd><a href="tel:+79516806915" data-legal="sellerPhone"></a></dd>
+            <dt>Email</dt>
+            <dd><a href="mailto:" data-legal="sellerEmail"></a></dd>
+            <dt>Часы работы</dt>
+            <dd data-legal="sellerHours"></dd>
+          </dl>
+        </article>
+
+        <article class="privacy__section" data-animate>
+          <h2>Для покупателей</h2>
+          <ul>
+            <li>Заказы оформляются на Сайте и подтверждаются менеджером.</li>
+            <li>Условия продажи — в <a href="offer.html">публичной оферте</a>.</li>
+            <li>Обработка персональных данных — в <a href="privacy.html">политике конфиденциальности</a>.</li>
+            <li>После оплаты выдаётся чек из приложения «Мой налог».</li>
+          </ul>
+        </article>
+
+        <article class="privacy__section legal__notice" data-animate>
+          <h2>Для владельца сайта</h2>
+          <p>
+            Чтобы подставить ваши данные вместо плейсхолдеров, укажите в файле
+            <code>src/data/products.json</code> в блоке <code>shop</code> поля
+            <code>sellerName</code> и <code>sellerInn</code> (полное ФИО и ИНН из «Мой налог»).
+          </p>
+        </article>
       </div>
     </section>
   </main>

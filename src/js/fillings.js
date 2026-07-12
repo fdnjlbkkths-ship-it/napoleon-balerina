@@ -21,13 +21,7 @@ export function formatFillingExtraLabel(filling) {
   return `+${getFillingExtra(filling)} ₽`;
 }
 
-export function escapeHtml(str) {
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
+export { escapeHtml } from './sanitize.js';
 
 /**
  * Выпадающее окошко начинок — анимация как у категорий / фильтров.

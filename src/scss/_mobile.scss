@@ -72,7 +72,7 @@ textarea,
   }
 
   &__group-title {
-    min-height: 40px;
+    min-height: 44px;
     display: flex;
     align-items: center;
   }
@@ -80,7 +80,7 @@ textarea,
   &__sublink {
     display: flex;
     align-items: center;
-    min-height: 40px;
+    min-height: 44px;
     padding: 0.15rem 0;
   }
 }
@@ -309,7 +309,7 @@ textarea,
       padding: 0.55rem 0.75rem 0.85rem;
 
       .add-to-cart-btn {
-        min-height: 40px;
+        min-height: 44px;
         font-size: 0.75rem;
         padding: 0.55rem 0.65rem;
       }
@@ -326,7 +326,7 @@ textarea,
   }
 
   .filling-dropdown__trigger {
-    min-height: 40px;
+    min-height: 44px;
     font-size: 0.75rem;
     padding: 0.45rem 0.55rem;
   }

@@ -1,5 +1,6 @@
 import { getCategories, getSubcategories } from './data.js';
 import { canHoverFine } from './pointer.js';
+import { escapeAttr, escapeHtml } from './sanitize.js';
 
 function menuUrl(category, subcategory = null) {
   const base = `menu.html?category=${category}`;
@@ -15,7 +16,7 @@ function buildDropdownItems(category) {
   return subs
     .map(
       (sub) =>
-        `<li><a href="${menuUrl(category.id, sub.id)}">${sub.icon ? sub.icon + ' ' : ''}${sub.name}</a></li>`
+        `<li><a href="${menuUrl(category.id, sub.id)}">${sub.icon ? sub.icon + ' ' : ''}${escapeHtml(sub.name)}</a></li>`
     )
     .join('');
 }
@@ -34,7 +35,7 @@ export function renderNavDropdowns(container) {
         return `
     <div class="nav-dropdown nav-dropdown--simple">
       <a href="${menuUrl(cat.id)}" class="nav-dropdown__trigger header__link">
-        ${cat.icon} ${cat.name}
+        ${cat.icon} ${escapeHtml(cat.name)}
       </a>
     </div>`;
       }
@@ -42,11 +43,11 @@ export function renderNavDropdowns(container) {
       return `
     <div class="nav-dropdown">
       <a href="${menuUrl(cat.id)}" class="nav-dropdown__trigger header__link" aria-expanded="false" aria-haspopup="true">
-        ${cat.icon} ${cat.name}
+        ${cat.icon} ${escapeHtml(cat.name)}
         <span class="nav-dropdown__arrow" aria-hidden="true">▾</span>
       </a>
       <ul class="nav-dropdown__menu">
-        <li><a href="${menuUrl(cat.id)}">Все — ${cat.name}</a></li>
+        <li><a href="${menuUrl(cat.id)}">Все — ${escapeHtml(cat.name)}</a></li>
         ${buildDropdownItems(cat)}
       </ul>
     </div>`;
@@ -63,18 +64,18 @@ export function renderMobileCatalog(container) {
     .map((cat) => {
       const subs = getSubcategories(cat.id);
       if (!subs.length) {
-        return `<li><a href="${menuUrl(cat.id)}" class="mobile-menu__link">${cat.icon} ${cat.name}</a></li>`;
+        return `<li><a href="${menuUrl(cat.id)}" class="mobile-menu__link">${cat.icon} ${escapeHtml(cat.name)}</a></li>`;
       }
 
       return `
       <li class="mobile-menu__group">
-        <span class="mobile-menu__group-title">${cat.icon} ${cat.name}</span>
+        <span class="mobile-menu__group-title">${cat.icon} ${escapeHtml(cat.name)}</span>
         <ul class="mobile-menu__sublist">
           <li><a href="${menuUrl(cat.id)}" class="mobile-menu__sublink">Все</a></li>
           ${subs
             .map(
               (sub) =>
-                `<li><a href="${menuUrl(cat.id, sub.id)}" class="mobile-menu__sublink">${sub.name}</a></li>`
+                `<li><a href="${menuUrl(cat.id, sub.id)}" class="mobile-menu__sublink">${escapeHtml(sub.name)}</a></li>`
             )
             .join('')}
         </ul>

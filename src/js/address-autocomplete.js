@@ -1,4 +1,5 @@
 import streets from '../data/cheboksary-streets.json';
+import { escapeAttr, escapeHtml } from './sanitize.js';
 
 const DEFAULT_CITY = 'Чебоксары';
 
@@ -56,8 +57,8 @@ export function initAddressAutocomplete(container) {
       .map(
         (street, i) => `
       <li>
-        <button type="button" class="autocomplete__item ${i === activeIndex ? 'active' : ''}" data-street="${street}">
-          <span class="autocomplete__city">${DEFAULT_CITY}</span>, ${street}
+        <button type="button" class="autocomplete__item ${i === activeIndex ? 'active' : ''}" data-street="${escapeAttr(street)}">
+          <span class="autocomplete__city">${escapeHtml(DEFAULT_CITY)}</span>, ${escapeHtml(street)}
         </button>
       </li>`
       )

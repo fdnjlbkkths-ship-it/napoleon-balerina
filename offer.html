@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Публичная оферта кондитерской Наполеон и Балерина — условия заказа, оплаты, доставки и возврата.">
+  <title>Публичная оферта — Наполеон и Балерина</title>
+  <link rel="icon" type="image/jpeg" href="images/logo.jpg">
+</head>
+<body>
+  <div id="loader" class="loader" aria-hidden="true">
+    <div class="loader__spinner"></div>
+    <p class="loader__text">Наполеон и Балерина</p>
+  </div>
+
+  <header class="header" role="banner">
+    <div class="container header__inner">
+      <a href="index.html" class="header__logo" aria-label="Наполеон и Балерина — на главную">
+        <img class="header__logo-img" src="images/logo.jpg" alt="" width="44" height="44">
+        <span class="header__logo-text">Наполеон и<br class="header__logo-br"> Балерина</span>
+      </a>
+      <nav class="header__nav" aria-label="Основная навигация">
+        <a href="index.html" class="header__link">Главная</a>
+        <a href="menu.html" class="header__link">Меню</a>
+        <a href="about.html" class="header__link">О нас</a>
+        <a href="contacts.html" class="header__link">Контакты</a>
+      </nav>
+      <div class="header__actions">
+        <button id="cart-btn" class="header__cart-btn" aria-label="Открыть корзину">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0020 4H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
+          <span id="cart-count" class="header__cart-count" data-count="0">0</span>
+        </button>
+        <button id="burger" class="header__burger" aria-label="Открыть меню">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <nav id="mobile-menu" class="mobile-menu" aria-label="Мобильное меню">
+    <ul class="mobile-menu__list">
+      <li><a href="index.html" class="mobile-menu__link">Главная</a></li>
+      <li><a href="menu.html" class="mobile-menu__link">Меню</a></li>
+      <li><a href="about.html" class="mobile-menu__link">О нас</a></li>
+      <li><a href="contacts.html" class="mobile-menu__link">Контакты</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <header class="page-header">
+      <div class="container">
+        <h1 data-animate>Публичная оферта</h1>
+        <p class="section__subtitle" data-animate>Договор розничной купли-продажи дистанционным способом</p>
+      </div>
+    </header>
+
+    <section class="section">
+      <div class="container">
+        <p class="privacy__section legal__updated" data-animate>Дата публикации: 12.07.2026. Действует до замены новой редакцией.</p>
+
+        <article class="privacy__section" data-animate>
+          <h2>1. Общие положения</h2>
+          <p>
+            Настоящий документ является официальным предложением (публичной офертой) продавца
+            <span data-legal="sellerName"></span>, <span data-legal="sellerStatus"></span>
+            (далее — «Продавец»), заключить договор розничной купли-продажи кондитерских изделий
+            собственного производства с любым дееспособным физическим лицом (далее — «Покупатель»)
+            на условиях, изложенных ниже (ст. 437, 438 ГК РФ; ст. 26.1 Закона РФ № 2300-1 «О защите прав потребителей»).
+          </p>
+          <p>
+            Интернет-сайт <span data-legal="shopName"></span> (далее — «Сайт») содержит каталог товаров,
+            цены и возможность оформления заказа. Размещение заказа на Сайте является акцептом оферты.
+          </p>
+        </article>
+
+        <article class="privacy__section" data-animate>
+          <h2>2. Сведения о продавце</h2>
+          <ul>
+            <li><strong>Наименование:</strong> кондитерская «<span data-legal="shopName"></span>»</li>
+            <li><strong>Продавец:</strong> <span data-legal="sellerName"></span></li>
+            <li><strong>Статус:</strong> <span data-legal="sellerStatus"></span></li>
+            <li><strong>ИНН:</strong> <span data-legal="sellerInn"></span></li>
+            <li><strong>Город:</strong> <span data-legal="sellerCity"></span></li>
+            <li><strong>Адрес самовывоза:</strong> <span data-legal="sellerAddress"></span></li>
+            <li><strong>Телефон:</strong> <a href="tel:+79516806915" data-legal="sellerPhone"></a></li>
+            <li><strong>Email:</strong> <a href="mailto:" data-legal="sellerEmail"></a></li>
+            <li><strong>Режим работы:</strong> <span data-legal="sellerHours"></span></li>
+          </ul>
+          <p>Подробные реквизиты — на странице <a href="requisites.html">Реквизиты</a>.</p>
+        </article>
+
+        <article class="privacy__section" data-animate>
+          <h2>3. Предмет договора</h2>
+          <p>
+            Продавец изготавливает и передаёт Покупателю кондитерские изделия собственного производства
+            (торты, пирожные, наборы и иные позиции из меню Сайта), а Покупатель оплачивает и принимает товар
+            на условиях настоящей оферты.
+          </p>
+          <p>
+            Характеристики товара (состав, вес, размер, срок хранения, срок изготовления, возможные аллергены)
+            указаны в карточке товара на Сайте. Состав может уточняться при выборе начинки.
+          </p>
+        </article>
+
+        <article class="privacy__section" data-animate>
+          <h2>4. Оформление и подтверждение заказа</h2>
+          <ol>
+            <li>Покупатель формирует заказ в корзине на Сайте.</li>
+            <li>Указывает контактные данные, способ получения (доставка или самовывоз), дату и время.</li>
+            <li>Нажимает «Оформить заказ», подтверждая согласие с офертой и <a href="privacy.html">политикой обработки персональных данных</a>.</li>
+            <li>Заказ поступает Продавцу; менеджер связывается с Покупателем для подтверждения состава, сроков и итоговой суммы.</li>
+            <li>Договор считается заключённым с момента подтверждения заказа Продавцом (по телефону, в мессенджере или иным согласованным способом).</li>
+          </ol>
+          <p>
+            Продавец вправе отказать в исполнении заказа при отсутствии ингредиентов, невозможности изготовления
+            к указанной дате или при предоставлении недостоверных контактных данных.
+          </p>
+        </article>
+
+        <article class="privacy__section" data-animate id="payment">
+          <h2>5. Цена и оплата</h2>
+          <p>Цены указаны на Сайте в рублях РФ. НДС не выделяется (применяется специальный налоговый режим НПД).</p>
+          <p>Итоговая стоимость может уточняться при выборе начинки, доставки или индивидуального оформления.</p>
+          <p>Оплата производится способом, согласованным с менеджером (в том числе перевод по СБП на реквизиты Продавца).</p>
+          <p>
+            После получения оплаты Продавец формирует чек в приложении «Мой налог» (ФЗ № 422-ФЗ) и направляет
+            Покупателю ссылку, QR-код или изображение чека в мессенджере / на email.
+          </p>
+        </article>
+
+        <article class="privacy__section" data-animate id="delivery">
+          <h2>6. Доставка и самовывоз</h2>
+          <ul>
+            <li><strong>Самовывоз</strong> — по адресу <span data-legal="sellerAddress"></span>, в согласованное время.</li>
+            <li><strong>Доставка</strong> — по городу <span data-legal="sellerCity"></span> в согласованный интервал. Стоимость и зона доставки уточняются при подтверждении заказа.</li>
+            <li><strong>Срок изготовления</strong> — ориентировочно от 12 часов; для сложных и праздничных заказов срок увеличивается и сообщается при подтверждении.</li>
+          </ul>
+          <p>
+            Риск случайной гибели товара переходит к Покупателю с момента передачи заказа (вручения курьером
+            или выдачи при самовывозе).
+          </p>
+        </article>
+
+        <article class="privacy__section" data-animate id="returns">
+          <h2>7. Отказ от заказа и возврат</h2>
+          <h3>7.1. До передачи товара</h3>
+          <p>Покупатель вправе отказаться от заказа в любое время до передачи товара без объяснения причин (ст. 26.1 ЗоЗПП).</p>
+
+          <h3>7.2. После передачи — товар надлежащего качества</h3>
+          <p>
+            При дистанционной продаже Покупатель вправе отказаться от товара надлежащего качества в течение
+            <strong>7 дней</strong> после получения, если сохранены товарный вид, потребительские свойства и
+            есть подтверждение покупки (ст. 26.1 п. 4 ЗоЗПП).
+          </p>
+          <p>
+            <strong>Исключение:</strong> изделия с <em>индивидуально-определёнными свойствами</em> (торт на заказ
+            с персональной надписью, уникальным декором, выбранной начинкой под конкретного получателя), которые
+            могут быть использованы исключительно данным Покупателем, — не подлежат возврату надлежащего качества
+            (ст. 26.1 п. 4 ЗоЗПП).
+          </p>
+          <p>
+            Скоропортящиеся кондитерские изделия после вскрытия упаковки или нарушения условий хранения
+            возврату надлежащего качества не подлежат в связи с утратой потребительских свойств.
+          </p>
+
+          <h3>7.3. Некачественный товар</h3>
+          <p>
+            При обнаружении недостатков Покупатель вправе предъявить требования по ст. 18–24 ЗоЗПП
+            (замена, возврат денег, уменьшение цены). Претензию направляют на email или телефон Продавца
+            с фото товара в разумный срок.
+          </p>
+
+          <h3>7.4. Возврат денежных средств</h3>
+          <p>
+            При законном отказе от товара или возврате деньги возвращаются в течение <strong>10 дней</strong>
+            с даты предъявления требования тем же способом, которым была произведена оплата, если иное не согласовано
+            (ст. 26.1 п. 4 ЗоЗПП). Расходы на обратную доставку товара надлежащего качества могут удерживаться
+            из суммы возврата.
+          </p>
+        </article>
+
+        <article class="privacy__section" data-animate>
+          <h2>8. Персональные данные</h2>
+          <p>
+            Обработка персональных данных Покупателя осуществляется в целях исполнения заказа на основании
+            настоящей оферты и <a href="privacy.html">политики обработки персональных данных</a>.
+          </p>
+        </article>
+
+        <article class="privacy__section" data-animate>
+          <h2>9. Претензии и споры</h2>
+          <p>
+            Претензии направляются на <a href="mailto:" data-legal="sellerEmail"></a> или по телефону
+            <a href="tel:+79516806915" data-legal="sellerPhone"></a>. Срок рассмотрения — до 10 дней
+            (ст. 22 ЗоЗПП). Споры разрешаются переговорами, при недостижении согласия — в суде по месту
+            жительства или пребывания Покупателя (ст. 17 ЗоЗПП).
+          </p>
+        </article>
+
+        <article class="privacy__section" data-animate>
+          <h2>10. Заключительные положения</h2>
+          <p>Продавец вправе изменять оферту, публикуя новую редакцию на Сайте. К ранее оформленным заказам применяется редакция на момент акцепта.</p>
+          <p>Оформляя заказ на Сайте, Покупатель подтверждает, что ознакомился с условиями настоящей оферты и принимает их в полном объёме.</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer" role="contentinfo">
+    <div class="container">
+      <div class="footer__grid">
+        <div>
+          <div class="footer__brand" data-shop="name">Наполеон и Балерина</div>
+          <p class="footer__text" data-shop="footerText">Кондитерская, где каждый десерт — произведение искусства.</p>
+        </div>
+        <div>
+          <h3 class="footer__title">Навигация</h3>
+          <a href="index.html" class="footer__link">Главная</a>
+          <a href="menu.html" class="footer__link">Меню</a>
+          <a href="about.html" class="footer__link">О нас</a>
+          <a href="contacts.html" class="footer__link">Контакты</a>
+        </div>
+        <div>
+          <h3 class="footer__title">Контакты</h3>
+          <a href="tel:+79516806915" class="footer__link" data-shop="phone">+7 (951) 680-69-15</a>
+          <a href="mailto:89030633443@mail.ru" class="footer__link" data-shop="email">89030633443@mail.ru</a>
+          <span class="footer__link" data-shop="address">Лесная улица, 7</span>
+        </div>
+      </div>
+      <div class="footer__bottom">&copy; 2026 <span data-shop="name">Наполеон и Балерина</span>. Все права защищены.</div>
+      <div class="footer__legal">
+        <a href="offer.html">Публичная оферта</a>
+        <a href="privacy.html">Политика обработки ПДн</a>
+        <a href="requisites.html">Реквизиты</a>
+        <a href="#" data-open-consent>Настройки cookies</a>
+      </div>
+    </div>
+  </footer>
+
+  <div id="cart-overlay" class="modal-overlay" aria-hidden="true"></div>
+  <aside id="cart-modal" class="cart-modal" role="dialog" aria-label="Корзина" aria-modal="true">
+    <div class="cart-modal__header">
+      <h2 class="cart-modal__title" id="cart-title">Корзина</h2>
+      <button id="cart-close" class="cart-modal__close" aria-label="Закрыть корзину">&times;</button>
+    </div>
+    <div id="cart-body" class="cart-modal__body"></div>
+    <div id="cart-footer-items" class="cart-modal__footer cart-modal__footer-panel">
+      <div class="cart-modal__total">
+        <span>Итого:</span>
+        <span id="cart-total-price">0 ₽</span>
+      </div>
+      <button id="cart-checkout" class="btn btn--primary btn--full">Оформить заказ</button>
+    </div>
+  </aside>
+
+  <script type="module" src="/src/js/main.js"></script>
+</body>
+</html>

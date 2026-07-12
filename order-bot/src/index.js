@@ -74,6 +74,13 @@ export default {
       }
 
       if (path === '/diag' && request.method === 'GET') {
+        const diagKey = env.DIAG_SECRET || env.ORDER_SECRET;
+        if (diagKey) {
+          const provided = url.searchParams.get('key') || '';
+          if (provided !== diagKey) {
+            return json({ error: 'Not found' }, 404);
+          }
+        }
         if (url.searchParams.get('setup') === '1') {
           await env.ORDERS.delete(COMMANDS_CACHE_KEY);
           const setup = await registerBotCommands(env);
@@ -183,7 +190,7 @@ async function handleOrder(request, env) {
     createdAt: new Date().toISOString(),
     status: 'new',
     items: items.slice(0, 50).map(normalizeItem),
-    total: Number(body.total) || calcTotal(items),
+    total: calcTotal(items),
     name: clean(body.name, 80),
     lastName: clean(body.lastName, 80),
     phone: phoneRaw,
@@ -707,6 +714,13 @@ async function hashText(value) {
 /* ───────── Telegram webhook ───────── */
 
 async function handleTelegram(request, env) {
+  if (env.TELEGRAM_WEBHOOK_SECRET) {
+    const token = request.headers.get('X-Telegram-Bot-Api-Secret-Token') || '';
+    if (token !== env.TELEGRAM_WEBHOOK_SECRET) {
+      return json({ error: 'Unauthorized' }, 401);
+    }
+  }
+
   const update = await request.json();
   console.log('update keys', Object.keys(update || {}));
 
@@ -1313,17 +1327,20 @@ async function allowRate(env, ip, limit, windowSec) {
   return data.count <= limit;
 }
 
+const DEFAULT_ALLOWED_ORIGINS = ['https://fdnjlbkkths-ship-it.github.io'];
+
 function parseAllowedOrigins(env) {
-  return String(env.ALLOWED_ORIGINS || '')
+  const custom = String(env.ALLOWED_ORIGINS || '')
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean);
+  return custom.length ? custom : DEFAULT_ALLOWED_ORIGINS;
 }
 
 function isOriginAllowed(origin, allowed) {
-  if (!allowed.length) return true;
   if (!origin) return true;
-  return allowed.includes(origin);
+  if (allowed.includes(origin)) return true;
+  return /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
 }
 
 function checkOrigin(request, env) {

@@ -6,4 +6,4 @@ dist/
 public/fonts/cerca-preview/
 src/data/products.json.bak
 _out1.txt
-_out2.txt
+order-bot/tmp-otp-test.json

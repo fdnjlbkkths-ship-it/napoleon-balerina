@@ -7,9 +7,11 @@ import {
   formatPrice,
 } from './cart.js';
 import { getShopInfo } from './data.js';
+import { isContactConsentGiven } from './contact-consent.js';
 import { animateCartBadge } from './animations.js';
 import { lockBodyScroll, unlockBodyScroll } from './pointer.js';
 import { closeAllDropdowns } from './navigation.js';
+import { escapeAttr, escapeHtml } from './sanitize.js';
 
 let cartModal;
 let cartOverlay;
@@ -95,13 +97,13 @@ function renderCart() {
   body.innerHTML = cart
     .map(
       (item) => `
-    <div class="cart-item" data-key="${item.key || item.id}">
-      <img class="cart-item__img" src="${item.image}" alt="${item.alt || item.name}" loading="lazy" width="72" height="72">
+    <div class="cart-item" data-key="${escapeAttr(item.key || item.id)}">
+      <img class="cart-item__img" src="${escapeAttr(item.image)}" alt="${escapeAttr(item.alt || item.name)}" loading="lazy" width="72" height="72">
       <div class="cart-item__info">
-        <div class="cart-item__name">${item.name}</div>
+        <div class="cart-item__name">${escapeHtml(item.name)}</div>
         ${
           item.filling
-            ? `<div class="cart-item__meta">Начинка: ${item.filling}${
+            ? `<div class="cart-item__meta">Начинка: ${escapeHtml(item.filling)}${
                 item.fillingExtra ? ` (+${item.fillingExtra} ₽)` : ''
               }</div>`
             : ''
@@ -135,6 +137,13 @@ export function initContactForm(formId = 'contact-form') {
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const msgEl = form.querySelector('.form-message') || createMessageEl(form);
+
+    if (!isContactConsentGiven(form)) {
+      msgEl.className = 'form-message form-message--error';
+      msgEl.textContent = 'Подтвердите согласие на обработку персональных данных.';
+      return;
+    }
+
     const formData = new FormData(form);
     const shop = getShopInfo();
 

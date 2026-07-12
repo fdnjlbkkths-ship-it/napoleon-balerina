@@ -221,6 +221,14 @@
     margin: 0 0 0.75rem;
   }
 
+  &__section h3 {
+    font-family: $font-body;
+    font-size: 1rem;
+    font-weight: 600;
+    color: $color-chocolate;
+    margin: 1rem 0 0.5rem;
+  }
+
   &__section p,
   &__section li {
     font-size: 0.95rem;
@@ -234,5 +242,87 @@
 
   &__section li {
     margin-bottom: 0.35rem;
+  }
+}
+
+.legal {
+  &__updated {
+    font-size: 0.875rem;
+    color: $color-text-light;
+    text-align: center;
+  }
+
+  &__card {
+    background: rgba($color-white, 0.72);
+    border-radius: $radius-md;
+    padding: 1.5rem;
+    box-shadow: $shadow-sm;
+  }
+
+  &__dl {
+    display: grid;
+    gap: 0.65rem 1rem;
+    margin-top: 1rem;
+
+    dt {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: $color-text-light;
+    }
+
+    dd {
+      margin: 0;
+      font-size: 0.95rem;
+      color: $color-text;
+    }
+  }
+
+  &__notice {
+    background: rgba($color-blush, 0.45);
+    border-radius: $radius-md;
+    padding: 1.25rem 1.5rem;
+
+    code {
+      font-size: 0.85em;
+      color: $color-chocolate;
+    }
+  }
+}
+
+.form-consent {
+  display: flex;
+  gap: 0.65rem;
+  align-items: flex-start;
+  margin: 0.75rem 0 1rem;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: $color-text-light;
+
+  input[type='checkbox'] {
+    flex-shrink: 0;
+    width: 1.1rem;
+    height: 1.1rem;
+    margin-top: 0.15rem;
+    accent-color: $color-caramel;
+  }
+
+  a {
+    color: $color-caramel;
+    text-decoration: underline;
+  }
+}
+
+.product-page__allergens {
+  margin-top: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: $radius-sm;
+  background: rgba($color-blush, 0.35);
+
+  &-text {
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: $color-text-light;
   }
 }

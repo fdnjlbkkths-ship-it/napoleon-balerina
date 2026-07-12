@@ -10,6 +10,7 @@ import { openCartModal } from './ui.js';
 import { animateElements } from './animations.js';
 import { closeAllDropdowns } from './navigation.js';
 import { canHoverFine } from './pointer.js';
+import { escapeHtml } from './sanitize.js';
 import {
   getPriceWithFilling,
   getSelectedFilling,
@@ -440,7 +441,7 @@ function createProductCard(product) {
           <img class="product-card__img" src="${cover}" alt="${escapeAttr(product.alt || product.name)}" loading="lazy" width="400" height="400">
         </div>
         <div class="product-card__body">
-          <div class="product-card__category">${getProductCategoryLabel(product)}</div>
+          <div class="product-card__category">${escapeHtml(getProductCategoryLabel(product))}</div>
           <h3 class="product-card__name">${escapeAttr(product.name)}</h3>
           <p class="product-card__price" data-price>${formatPrice(initialPrice)}</p>
           ${specsHtml}

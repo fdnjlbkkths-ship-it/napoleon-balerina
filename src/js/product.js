@@ -10,6 +10,7 @@ import {
   renderFillingDropdown,
 } from './fillings.js';
 import { getProductCompositionLines } from './composition.js';
+import { getProductAllergens } from './allergens.js';
 import { formatSizeDisplay } from './format-size.js';
 
 /** Убирает из текста то, что уже показано отдельными блоками (вес/размер/срок/выбор начинки). */
@@ -65,6 +66,19 @@ function renderCompositionBlock(lines) {
         </button>`
           : ''
       }
+    </div>`;
+}
+
+function renderAllergensBlock(product) {
+  const allergens = getProductAllergens(product);
+  const list = allergens.length
+    ? `${escapeHtml(allergens.join(', '))}. При аллергии уточните актуальный состав у менеджера.`
+    : 'Изделие может содержать аллергены (глютен, молоко, яйца, орехи, сою). При аллергии уточните состав перед заказом.';
+
+  return `
+    <div class="product-page__allergens">
+      <p class="product-page__block-label">Аллергены</p>
+      <p class="product-page__allergens-text">${list}</p>
     </div>`;
 }
 
@@ -160,6 +174,7 @@ export function initProductPage() {
             : ''
         }
         ${renderCompositionBlock(compositionLines)}
+        ${renderAllergensBlock(product)}
         ${specs ? `<div class="product-page__specs">${specs}</div>` : ''}
         <div class="product-page__actions">
           <div class="qty-control">
