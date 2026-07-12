@@ -15,5 +15,7 @@ preview_id = "8c46f0d8202e45bfbac3fe2b773651e4"
 #   npx wrangler secret put RECAPTCHA_V3_SECRET
 #   npx wrangler secret put RECAPTCHA_V2_SECRET
 #   npx wrangler secret put RECAPTCHA_V3_MIN_SCORE  (опционально, по умолчанию 0.5)
-#   npx wrangler secret put RESEND_API_KEY   — бесплатная почта (resend.com)
-#   npx wrangler secret put EMAIL_FROM       — например: Наполеон и Балерина <onboarding@resend.dev>
+#   npx wrangler secret put SENDPULSE_ID       — ID из SendPulse → Настройки → API
+#   npx wrangler secret put SENDPULSE_SECRET   — Secret из SendPulse → Настройки → API
+#   npx wrangler secret put EMAIL_FROM         — подтверждённый email отправителя (например 89030633443@mail.ru)
+#   npx wrangler secret put EMAIL_FROM_NAME    — опционально: Наполеон и Балерина
