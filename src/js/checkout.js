@@ -103,6 +103,7 @@ function readFormExtras() {
 
   return {
     name: (document.getElementById('checkout-name')?.value || draft.name || '').trim(),
+    lastName: (document.getElementById('checkout-lastname')?.value || draft.lastName || '').trim(),
     phone: phoneEl ? getPhoneValue(phoneEl) : draft.phone || '',
     email: isValidEmail(email) ? email : '',
     emailToken: '',
@@ -127,6 +128,7 @@ function persistVisibleFields() {
 
   saveDraft({
     name: (document.getElementById('checkout-name')?.value || draft.name || '').trim(),
+    lastName: (document.getElementById('checkout-lastname')?.value || draft.lastName || '').trim(),
     phone: document.getElementById('checkout-phone')
       ? getPhoneValue(document.getElementById('checkout-phone'))
       : draft.phone || '',
@@ -169,6 +171,7 @@ function setFieldError(groupSel, inputSel, errorSel, message, show) {
 
 function validateStep1() {
   const name = document.getElementById('checkout-name')?.value?.trim() || '';
+  const lastName = document.getElementById('checkout-lastname')?.value?.trim() || '';
   const phoneOk = isPhoneComplete(document.getElementById('checkout-phone'));
   const emailRaw = document.getElementById('checkout-email')?.value?.trim() || '';
   let ok = true;
@@ -177,6 +180,15 @@ function validateStep1() {
     const nameInput = document.getElementById('checkout-name');
     nameInput?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     setTimeout(() => nameInput?.focus({ preventScroll: true }), 280);
+    ok = false;
+  }
+
+  if (!lastName) {
+    const lastNameInput = document.getElementById('checkout-lastname');
+    if (ok) {
+      lastNameInput?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => lastNameInput?.focus({ preventScroll: true }), 280);
+    }
     ok = false;
   }
 
@@ -277,10 +289,14 @@ function renderStepPanel() {
     panel.innerHTML = `
       <h1 class="checkout-panel__title">Контакты</h1>
       <p class="checkout-panel__lead">Как с вами связаться по заказу. Email необязателен — код подтверждения не нужен.</p>
-      <div class="checkout-fields">
+      <div class="checkout-fields checkout-fields--contacts">
         <div class="form-group" data-checkout-name-group>
           <label for="checkout-name">Имя <span class="required-mark" aria-hidden="true">*</span></label>
-          <input type="text" id="checkout-name" autocomplete="name" placeholder="Как к вам обращаться?" value="${escapeAttr(draft.name || '')}" required>
+          <input type="text" id="checkout-name" autocomplete="given-name" placeholder="Анна" value="${escapeAttr(draft.name || '')}" required>
+        </div>
+        <div class="form-group" data-checkout-lastname-group>
+          <label for="checkout-lastname">Фамилия <span class="required-mark" aria-hidden="true">*</span></label>
+          <input type="text" id="checkout-lastname" autocomplete="family-name" placeholder="Иванова" value="${escapeAttr(draft.lastName || '')}" required>
         </div>
         <div class="form-group" data-checkout-phone-group>
           <label for="checkout-phone">Телефон <span class="required-mark" aria-hidden="true">*</span></label>

@@ -32,6 +32,7 @@ export function buildOrderMessage(cart, extras = {}) {
 
   const mode = extras.mode || 'pickup';
 
+  if (extras.lastName?.trim()) lines.push(`👤 Фамилия: ${extras.lastName.trim()}`);
   if (extras.name?.trim()) lines.push(`👤 Имя: ${extras.name.trim()}`);
   if (extras.phone?.trim()) lines.push(`📞 Телефон: ${extras.phone.trim()}`);
   if (extras.email?.trim()) lines.push(`✉️ Email: ${extras.email.trim()}`);
@@ -50,6 +51,7 @@ export function buildOrderMessage(cart, extras = {}) {
   if (extras.comment?.trim()) lines.push(`💬 Комментарий: ${extras.comment.trim()}`);
 
   if (
+    extras.lastName ||
     extras.name ||
     extras.phone ||
     extras.email ||

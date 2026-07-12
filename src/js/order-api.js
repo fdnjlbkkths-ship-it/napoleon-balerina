@@ -30,6 +30,7 @@ export async function submitOrderToBot(apiUrl, cart, extras = {}) {
     })),
     total: getCartTotal(cart),
     name: extras.name || '',
+    lastName: extras.lastName || '',
     phone: extras.phone || '',
     email: extras.email || '',
     emailToken: extras.emailToken || '',

@@ -185,6 +185,7 @@ async function handleOrder(request, env) {
     items: items.slice(0, 50).map(normalizeItem),
     total: Number(body.total) || calcTotal(items),
     name: clean(body.name, 80),
+    lastName: clean(body.lastName, 80),
     phone: phoneRaw,
     email,
     fulfillment,
@@ -1001,7 +1002,9 @@ async function sendOrderList(env, chatId, activeOnly) {
 
   const lines = orders.map((o, i) => {
     const when = formatDateTime(o.deliveryDate, o.deliveryTime) || '—';
-    const who = escapeHtml(o.name || o.phone || 'Без имени');
+    const who = escapeHtml(
+      [o.lastName, o.name].filter(Boolean).join(' ') || o.phone || 'Без имени'
+    );
     return `${i + 1}. ${STATUS[o.status]} <b>${escapeHtml(o.id)}</b> — ${who}\n   ${formatMoney(o.total)} · доставка ${escapeHtml(when)}`;
   });
 
@@ -1101,7 +1104,8 @@ function formatOrderHtml(order) {
   lines.push(`💳 ${escapeHtml(order.paymentStatus || 'Оплата: ожидает (СБП)')}`);
   lines.push('');
 
-  if (order.name) lines.push(`👤 ${escapeHtml(order.name)}`);
+  if (order.lastName) lines.push(`👤 Фамилия: ${escapeHtml(order.lastName)}`);
+  if (order.name) lines.push(`👤 Имя: ${escapeHtml(order.name)}`);
   if (order.phone) lines.push(`📞 ${escapeHtml(order.phone)}`);
   if (order.email) lines.push(`✉️ ${escapeHtml(order.email)}`);
   if (order.fulfillment === 'delivery' && order.address) {

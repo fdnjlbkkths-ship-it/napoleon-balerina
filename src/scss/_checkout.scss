@@ -145,6 +145,44 @@
   flex-direction: column;
   gap: 1rem;
   margin-bottom: 1.35rem;
+
+  &--contacts {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    align-items: start;
+
+    @media (min-width: $breakpoint-sm) {
+      grid-template-columns: 1fr 1fr;
+      grid-template-areas:
+        'name lastname'
+        'phone email';
+
+      [data-checkout-lastname-group] {
+        grid-area: lastname;
+      }
+
+      [data-checkout-name-group] {
+        grid-area: name;
+      }
+
+      [data-checkout-email-group] {
+        grid-area: email;
+      }
+
+      [data-checkout-phone-group] {
+        grid-area: phone;
+      }
+    }
+
+    .form-group {
+      margin-bottom: 0;
+    }
+
+    .field-hint {
+      margin-bottom: 0;
+    }
+  }
 }
 
 .checkout-actions {
