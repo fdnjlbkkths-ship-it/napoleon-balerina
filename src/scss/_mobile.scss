@@ -333,7 +333,8 @@ textarea,
     }
 
     &__dots {
-      bottom: calc(3.5rem + var(--safe-bottom));
+      bottom: calc(4.15rem + var(--safe-bottom));
+      gap: 1rem;
     }
 
     &__scroll {

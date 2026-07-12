@@ -573,11 +573,13 @@
     bottom: clamp(5rem, 11vh, 6.5rem);
     z-index: 3;
     display: flex;
-    gap: 0.45rem;
+    align-items: center;
+    gap: 0.9rem;
     transform: translateX(-50%);
   }
 
   &__dot {
+    position: relative;
     width: 0.55rem;
     height: 0.55rem;
     padding: 0;
@@ -586,6 +588,14 @@
     background: rgba(247, 239, 230, 0.35);
     cursor: pointer;
     transition: background 0.25s ease, transform 0.25s ease;
+    flex-shrink: 0;
+
+    // Увеличиваем зону нажатия без визуального увеличения точки
+    &::before {
+      content: '';
+      position: absolute;
+      inset: -0.65rem;
+    }
 
     &.is-active {
       background: rgba(247, 239, 230, 0.95);
