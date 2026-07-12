@@ -5,7 +5,8 @@ import {
   getProductCategoryLabel,
   searchProducts,
 } from './data.js';
-import { addToCart, formatPrice } from './cart.js';
+import { addToCart, formatPrice, getCartLineKey, getCartLineQuantity, updateQuantity } from './cart.js';
+import { openCartModal } from './ui.js';
 import { animateElements } from './animations.js';
 import { closeAllDropdowns } from './navigation.js';
 import { canHoverFine } from './pointer.js';
@@ -108,6 +109,7 @@ export function initMenuPage() {
   });
 
   initToolbarDropdowns(document.querySelector('.products__toolbar'));
+  bindProductCardActions(grid);
   renderFilters();
   renderProducts();
   bindFilterInteractions();
@@ -212,7 +214,6 @@ export function initMenuPage() {
     }
 
     grid.innerHTML = products.map((product) => createProductCard(product)).join('');
-    bindAddToCartButtons(grid);
     animateElements('#products-grid [data-animate]');
   }
 }
@@ -360,7 +361,53 @@ function initFilterDropdowns(container, { onToggleClose } = {}) {
 export function renderProductCards(container, products) {
   if (!container) return;
   container.innerHTML = products.map((p) => createProductCard(p)).join('');
-  bindAddToCartButtons(container);
+  bindProductCardActions(container);
+}
+
+function renderProductCardActions(productId, filling, fillings) {
+  const resolvedFilling = filling || fillings[0] || '';
+  const qty = getCartLineQuantity(productId, resolvedFilling);
+
+  if (qty > 0) {
+    const lineKey = getCartLineKey(productId, resolvedFilling);
+    return `
+      <div class="product-card__qty-row">
+        <div class="qty-control product-card__qty" data-line-key="${escapeAttr(lineKey)}">
+          <button type="button" class="qty-control__btn" data-card-qty-minus aria-label="Уменьшить количество">−</button>
+          <span class="product-card__qty-value" data-card-qty>${qty}</span>
+          <button type="button" class="qty-control__btn" data-card-qty-plus aria-label="Увеличить количество">+</button>
+        </div>
+        <button type="button" class="product-card__cart-link" data-open-cart aria-label="Открыть корзину">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0020 4H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
+        </button>
+      </div>`;
+  }
+
+  return `<button type="button" class="btn btn--primary btn--small add-to-cart-btn" data-id="${productId}">В корзину</button>`;
+}
+
+function syncProductCardCartUI(card) {
+  if (!card) return;
+  const productId = Number(card.dataset.id);
+  const product = getProducts().find((p) => p.id === productId);
+  if (!product) return;
+
+  const fillings = Array.isArray(product.fillings) ? product.fillings : [];
+  const filling = getSelectedFilling(card, productId, fillings);
+  const slot = card.querySelector('[data-card-actions]');
+  if (!slot) return;
+
+  slot.innerHTML = renderProductCardActions(productId, filling, fillings);
+}
+
+export function syncAllProductCardCartUI(root = document) {
+  root.querySelectorAll('.product-card').forEach(syncProductCardCartUI);
+}
+
+export function initProductCardCartSync() {
+  window.addEventListener('cart-updated', () => {
+    syncAllProductCardCartUI();
+  });
 }
 
 function createProductCard(product) {
@@ -401,12 +448,19 @@ function createProductCard(product) {
       </a>
       <div class="product-card__footer">
         ${renderFillingDropdown(product.id, fillings, initialFilling)}
-        <button type="button" class="btn btn--primary btn--small add-to-cart-btn" data-id="${product.id}">В корзину</button>
+        <div class="product-card__actions" data-card-actions data-product-id="${product.id}">
+          ${renderProductCardActions(product.id, initialFilling, fillings)}
+        </div>
       </div>
     </article>`;
 }
 
-function bindAddToCartButtons(container) {
+const productCardActionRoots = new WeakSet();
+
+function bindProductCardActions(container) {
+  if (!container || productCardActionRoots.has(container)) return;
+  productCardActionRoots.add(container);
+
   initFillingDropdowns(container, {
     onChange: (dropdown, filling) => {
       const card = dropdown.closest('.product-card');
@@ -414,17 +468,19 @@ function bindAddToCartButtons(container) {
       const base = Number(card.dataset.basePrice) || 0;
       const priceEl = card.querySelector('[data-price]');
       if (priceEl) priceEl.textContent = formatPrice(getPriceWithFilling(base, filling));
+      syncProductCardCartUI(card);
     },
   });
 
-  container.querySelectorAll('.add-to-cart-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const id = Number(btn.dataset.id);
+  container.addEventListener('click', (e) => {
+    const addBtn = e.target.closest('.add-to-cart-btn');
+    if (addBtn && container.contains(addBtn)) {
+      const id = Number(addBtn.dataset.id);
       const product = getProducts().find((p) => p.id === id);
       if (!product) return;
 
       const fillings = Array.isArray(product.fillings) ? product.fillings : [];
-      const card = btn.closest('.product-card');
+      const card = addBtn.closest('.product-card');
       const filling = getSelectedFilling(card, id, fillings);
 
       if (fillings.length > 1 && !filling) {
@@ -433,11 +489,41 @@ function bindAddToCartButtons(container) {
       }
 
       addToCart(product, 1, { filling });
-      btn.textContent = 'Добавлено ✓';
-      setTimeout(() => {
-        btn.textContent = 'В корзину';
-      }, 1500);
-    });
+      return;
+    }
+
+    const minusBtn = e.target.closest('[data-card-qty-minus]');
+    if (minusBtn && container.contains(minusBtn)) {
+      const key = minusBtn.closest('[data-line-key]')?.dataset.lineKey;
+      if (key) updateQuantity(key, -1);
+      return;
+    }
+
+    const plusBtn = e.target.closest('[data-card-qty-plus]');
+    if (plusBtn && container.contains(plusBtn)) {
+      const row = plusBtn.closest('[data-line-key]');
+      const key = row?.dataset.lineKey;
+      const card = plusBtn.closest('.product-card');
+      const productId = Number(card?.dataset.id);
+      const product = getProducts().find((p) => p.id === productId);
+      if (!product) return;
+
+      const fillings = Array.isArray(product.fillings) ? product.fillings : [];
+      const filling = getSelectedFilling(card, productId, fillings);
+
+      if (key && getCartLineQuantity(productId, filling) > 0) {
+        updateQuantity(key, 1);
+      } else {
+        addToCart(product, 1, { filling });
+      }
+      return;
+    }
+
+    const cartLink = e.target.closest('[data-open-cart]');
+    if (cartLink && container.contains(cartLink)) {
+      e.preventDefault();
+      openCartModal();
+    }
   });
 }
 

@@ -4,7 +4,7 @@ import { initCart, initContactForm } from './ui.js';
 import { initCheckoutPage } from './checkout.js';
 import { consumeCartExpiredFlag } from './cart.js';
 import { getProducts, getShopInfo, getShopMapEmbedUrl } from './data.js';
-import { renderCategories, renderProductCards } from './menu.js';
+import { renderCategories, renderProductCards, initProductCardCartSync } from './menu.js';
 import { initMenuPage } from './menu.js';
 import { initProductPage } from './product.js';
 import {
@@ -168,6 +168,7 @@ const page = window.location.pathname.split('/').pop() || 'index.html';
 initLoader();
 initNavigation();
 initCart();
+initProductCardCartSync();
 initHeaderScroll();
 initShopContent();
 initConsent();

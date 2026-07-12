@@ -21,6 +21,8 @@ export function initAddressAutocomplete(container) {
   const cityInput = container.querySelector('[data-address-city]');
   const streetInput = container.querySelector('[data-address-street]');
   const houseInput = container.querySelector('[data-address-house]');
+  const entranceInput = container.querySelector('[data-address-entrance]');
+  const apartmentInput = container.querySelector('[data-address-apartment]');
   const list = container.querySelector('[data-address-suggestions]');
 
   if (cityInput && !cityInput.value) {
@@ -103,6 +105,12 @@ export function initAddressAutocomplete(container) {
   houseInput?.addEventListener('input', () => {
     container.dispatchEvent(new CustomEvent('address-change'));
   });
+  entranceInput?.addEventListener('input', () => {
+    container.dispatchEvent(new CustomEvent('address-change'));
+  });
+  apartmentInput?.addEventListener('input', () => {
+    container.dispatchEvent(new CustomEvent('address-change'));
+  });
 }
 
 export function getAddressValue(container) {
@@ -111,10 +119,14 @@ export function getAddressValue(container) {
   const city = container.querySelector('[data-address-city]')?.value?.trim() || DEFAULT_CITY;
   const street = container.querySelector('[data-address-street]')?.value?.trim() || '';
   const house = container.querySelector('[data-address-house]')?.value?.trim() || '';
+  const entrance = container.querySelector('[data-address-entrance]')?.value?.trim() || '';
+  const apartment = container.querySelector('[data-address-apartment]')?.value?.trim() || '';
 
   const parts = [city];
   if (street) parts.push(`ул. ${street}`);
-  if (house) parts.push(house);
+  if (house) parts.push(`д. ${house}`);
+  if (entrance) parts.push(`подъезд ${entrance}`);
+  if (apartment) parts.push(`кв. ${apartment}`);
 
   return parts.join(', ');
 }

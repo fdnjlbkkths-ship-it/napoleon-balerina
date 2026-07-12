@@ -70,6 +70,19 @@ function lineKey(productId, filling = '') {
   return `${productId}::${filling || ''}`;
 }
 
+export function getCartLineKey(productId, filling = '') {
+  return lineKey(productId, filling);
+}
+
+export function getCartLineQuantity(productId, filling = '') {
+  const cart = getCart();
+  const key = lineKey(productId, filling);
+  const item = cart.find(
+    (i) => i.key === key || (!i.key && !filling && i.id === productId)
+  );
+  return item?.quantity || 0;
+}
+
 /**
  * @param {object} product
  * @param {number} quantity

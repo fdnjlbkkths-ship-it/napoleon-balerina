@@ -8,6 +8,8 @@ const repoName = process.env.GITHUB_REPOSITORY?.split('/')[1];
 const base =
   process.env.GITHUB_ACTIONS && repoName ? `/${repoName}/` : '/';
 
+const WORKER_ORDER_ORIGIN = 'https://napoleon-order-bot.napoleonorders.workers.dev';
+
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   if (env.ADMIN_PIN && !process.env.ADMIN_PIN) process.env.ADMIN_PIN = env.ADMIN_PIN;
@@ -24,6 +26,13 @@ export default defineConfig(({ mode }) => {
           '**/public/fonts/cerca-preview/**',
           '**/src/data/products.json.bak',
         ],
+      },
+      proxy: {
+        '/api/order': {
+          target: WORKER_ORDER_ORIGIN,
+          changeOrigin: true,
+          rewrite: () => '/order',
+        },
       },
     },
     build: {

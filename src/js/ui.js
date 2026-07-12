@@ -14,6 +14,10 @@ import { closeAllDropdowns } from './navigation.js';
 let cartModal;
 let cartOverlay;
 
+export function openCartModal() {
+  openCart();
+}
+
 export function initCart() {
   cartModal = document.getElementById('cart-modal');
   cartOverlay = document.getElementById('cart-overlay');

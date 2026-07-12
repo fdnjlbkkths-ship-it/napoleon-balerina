@@ -1,6 +1,6 @@
 import { getCartTotal, formatPrice, formatCartItemName } from './cart.js';
 import { getShopInfo } from './data.js';
-import { SBP_PAYMENT } from './sbp-payment.js';
+import { getPaymentStatusLine } from './sbp-payment.js';
 
 function formatDeliveryDate(isoDate) {
   if (!isoDate) return '';
@@ -16,7 +16,10 @@ export function buildOrderMessage(cart, extras = {}) {
 
   lines.push(`🍰 *ЗАКАЗ — ${shop.name}*`);
   if (extras.orderId) {
-    lines.push(`🧾 Номер: ${extras.orderId}`);
+    const raw = String(extras.orderId).trim();
+    const display =
+      /^\d{8}$/.test(raw) ? `№ ${raw.slice(0, 4)}-${raw.slice(4)}` : `№ ${raw}`;
+    lines.push(`🧾 Номер: ${display}`);
   }
   lines.push('');
   lines.push('📋 *Ваш заказ:*');
@@ -30,14 +33,21 @@ export function buildOrderMessage(cart, extras = {}) {
   lines.push('');
   lines.push('─────────────────');
   lines.push(`💰 *Итого: ${formatPrice(total)}*`);
-  lines.push(`💳 ${extras.paymentStatus || SBP_PAYMENT.paymentLine}`);
+  lines.push(`💳 ${extras.paymentStatus || getPaymentStatusLine()}`);
   if (extras.confirmChannel) {
     const labels = {
       phone: 'Звонок по телефону',
       telegram: 'Telegram',
       max: 'Мессенджер Max',
     };
-    lines.push(`🔔 Подтверждение: ${labels[extras.confirmChannel] || extras.confirmChannel}`);
+    const label = labels[extras.confirmChannel] || extras.confirmChannel;
+    let contact = extras.phone?.trim() || '';
+    if (extras.confirmChannel === 'telegram' && extras.telegramUsername?.trim()) {
+      const tg = extras.telegramUsername.trim();
+      contact = tg.startsWith('@') ? tg : `@${tg}`;
+    }
+    lines.push(`🔔 *Подтверждение заказа:* ${label}`);
+    if (contact) lines.push(`📲 *Контакт для связи:* ${contact}`);
   }
   lines.push('');
 

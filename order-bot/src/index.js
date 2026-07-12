@@ -195,8 +195,9 @@ async function handleOrder(request, env) {
     comment: clean(body.comment, 500),
     shopName: clean(body.shopName, 80) || 'Наполеон и Балерина',
     paymentMethod: clean(body.paymentMethod, 20) || 'sbp',
-    paymentStatus: clean(body.paymentStatus, 80) || 'Оплата: ожидает (СБП)',
+    paymentStatus: clean(body.paymentStatus, 80) || 'Оплата: уточнит менеджер',
     confirmChannel: clean(body.confirmChannel, 20) || 'phone',
+    telegramUsername: clean(body.telegramUsername, 64),
   };
 
   await saveOrder(env, order);
@@ -1085,9 +1086,48 @@ async function getOrder(env, id) {
 
 /* ───────── Formatting ───────── */
 
+function formatConfirmChannel(order) {
+  const channel = order.confirmChannel || 'phone';
+  const labels = {
+    phone: 'Звонок по телефону',
+    telegram: 'Telegram',
+    max: 'Мессенджер Max',
+  };
+  const actions = {
+    phone: 'Перезвоните клиенту для подтверждения заказа',
+    telegram: 'Напишите клиенту в Telegram для подтверждения заказа',
+    max: 'Напишите клиенту в MAX для подтверждения заказа',
+  };
+  const label = labels[channel] || channel;
+  let contact = order.phone || '';
+  if (channel === 'telegram' && order.telegramUsername) {
+    const tg = order.telegramUsername;
+    contact = tg.startsWith('@') ? tg : `@${tg}`;
+  }
+  return {
+    label,
+    contact,
+    action: actions[channel] || 'Свяжитесь с клиентом для подтверждения заказа',
+  };
+}
+
+function formatOrderNumberDisplay(id) {
+  const raw = String(id || '').trim();
+  if (!raw) return '—';
+  if (/^\d{8}$/.test(raw)) {
+    return `№ ${raw.slice(0, 4)}-${raw.slice(4)}`;
+  }
+  if (/^NB-/i.test(raw)) {
+    return `№ ${raw.replace(/^NB-/i, '').replace(/-/g, '·')}`;
+  }
+  return `№ ${raw}`;
+}
+
 function formatOrderHtml(order) {
   const lines = [];
-  lines.push(`🍰 <b>ЗАКАЗ ${escapeHtml(order.id)}</b>`);
+  const confirm = formatConfirmChannel(order);
+
+  lines.push(`🍰 <b>ЗАКАЗ ${escapeHtml(formatOrderNumberDisplay(order.id))}</b>`);
   lines.push(`Статус: ${STATUS[order.status] || order.status}`);
   lines.push(`Создан: ${escapeHtml(formatIso(order.createdAt))}`);
   lines.push('');
@@ -1102,25 +1142,26 @@ function formatOrderHtml(order) {
 
   lines.push('');
   lines.push(`💰 <b>Итого: ${formatMoney(order.total)}</b>`);
-  lines.push(`💳 ${escapeHtml(order.paymentStatus || 'Оплата: ожидает (СБП)')}`);
-  if (order.confirmChannel) {
-    const labels = {
-      phone: 'Звонок по телефону',
-      telegram: 'Telegram',
-      max: 'Мессенджер Max',
-    };
-    const label = labels[order.confirmChannel] || order.confirmChannel;
-    lines.push(`🔔 Подтверждение: ${escapeHtml(label)}`);
+  lines.push(`💳 ${escapeHtml(order.paymentStatus || 'Оплата: уточнит менеджер')}`);
+  lines.push('');
+  lines.push(`🔔 <b>Подтверждение заказа:</b> ${escapeHtml(confirm.label)}`);
+  if (confirm.contact) {
+    lines.push(`📲 <b>Контакт для связи:</b> ${escapeHtml(confirm.contact)}`);
   }
+  lines.push(`↪️ ${escapeHtml(confirm.action)}`);
   lines.push('');
 
   if (order.lastName) lines.push(`👤 Фамилия: ${escapeHtml(order.lastName)}`);
   if (order.name) lines.push(`👤 Имя: ${escapeHtml(order.name)}`);
   if (order.phone) lines.push(`📞 ${escapeHtml(order.phone)}`);
   if (order.email) lines.push(`✉️ ${escapeHtml(order.email)}`);
-  if (order.fulfillment === 'delivery' && order.address) {
-    lines.push(`📍 ${escapeHtml(order.address)}`);
-  } else if (order.fulfillment === 'pickup' || !order.address) {
+  if (order.fulfillment === 'delivery') {
+    lines.push(
+      order.address
+        ? `📍 ${escapeHtml(order.address)}`
+        : '📍 Доставка (адрес уточнить у клиента)'
+    );
+  } else {
     lines.push('🏪 Самовывоз');
   }
   if (order.deliveryDate || order.deliveryTime) {
@@ -1190,9 +1231,11 @@ function isAdmin(chatId, env) {
 /* ───────── Helpers ───────── */
 
 function makeOrderId() {
-  const t = Date.now().toString(36).toUpperCase();
-  const r = Math.random().toString(36).slice(2, 5).toUpperCase();
-  return `NB-${t}-${r}`;
+  const now = new Date();
+  const dd = String(now.getDate()).padStart(2, '0');
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const rnd = String(Math.floor(Math.random() * 9000) + 1000);
+  return `${dd}${mm}${rnd}`;
 }
 
 function normalizeItem(item) {
@@ -1270,17 +1313,22 @@ async function allowRate(env, ip, limit, windowSec) {
   return data.count <= limit;
 }
 
-function checkOrigin(request, env) {
-  const origin = request.headers.get('Origin') || '';
-  const allowed = String(env.ALLOWED_ORIGINS || '')
+function parseAllowedOrigins(env) {
+  return String(env.ALLOWED_ORIGINS || '')
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean);
+}
 
-  // Если список не задан — пропускаем (удобно для первого запуска).
+function isOriginAllowed(origin, allowed) {
   if (!allowed.length) return true;
   if (!origin) return true;
-  return allowed.some((o) => origin === o || origin.endsWith(o.replace(/^https?:\/\//, '')));
+  return allowed.includes(origin);
+}
+
+function checkOrigin(request, env) {
+  const origin = request.headers.get('Origin') || '';
+  return isOriginAllowed(origin, parseAllowedOrigins(env));
 }
 
 function json(data, status = 200) {
@@ -1291,24 +1339,16 @@ function json(data, status = 200) {
 }
 
 function cors(response, request, env) {
-  const origin = request.headers.get('Origin') || '*';
-  const allowed = String(env.ALLOWED_ORIGINS || '')
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean);
-
-  let allow = '*';
-  if (allowed.length) {
-    allow = allowed.includes(origin) ? origin : allowed[0];
-  } else if (origin && origin !== 'null') {
-    allow = origin;
-  }
-
+  const origin = request.headers.get('Origin') || '';
+  const allowed = parseAllowedOrigins(env);
   const headers = new Headers(response.headers);
-  headers.set('Access-Control-Allow-Origin', allow);
-  headers.set('Access-Control-Allow-Methods', 'POST, OPTIONS, GET');
-  headers.set('Access-Control-Allow-Headers', 'Content-Type, X-Order-Secret');
-  headers.set('Vary', 'Origin');
+
+  if (origin && isOriginAllowed(origin, allowed)) {
+    headers.set('Access-Control-Allow-Origin', origin);
+    headers.set('Access-Control-Allow-Methods', 'POST, OPTIONS, GET');
+    headers.set('Access-Control-Allow-Headers', 'Content-Type, X-Order-Secret');
+    headers.set('Vary', 'Origin');
+  }
 
   return new Response(response.body, { status: response.status, headers });
 }

@@ -1,5 +1,6 @@
 import { getCartTotal } from './cart.js';
 import { getShopInfo } from './data.js';
+import { getPaymentStatusLine, isSbpEnabled } from './sbp-payment.js';
 
 export class OrderChallengeRequiredError extends Error {
   constructor(message = 'Требуется проверка') {
@@ -40,9 +41,10 @@ export async function submitOrderToBot(apiUrl, cart, extras = {}) {
     deliveryTime: extras.deliveryTime || '',
     comment: extras.comment || '',
     shopName: shop.name || '',
-    paymentMethod: extras.paymentMethod || 'sbp',
-    paymentStatus: extras.paymentStatus || 'Оплата: ожидает (СБП)',
+    paymentMethod: extras.paymentMethod || (isSbpEnabled() ? 'sbp' : 'manager'),
+    paymentStatus: extras.paymentStatus || getPaymentStatusLine(),
     confirmChannel: extras.confirmChannel || 'phone',
+    telegramUsername: extras.telegramUsername || '',
     // anti-bot
     website: extras.website || '',
     startedAt: extras.startedAt || 0,
@@ -56,11 +58,21 @@ export async function submitOrderToBot(apiUrl, cart, extras = {}) {
   const secret = import.meta.env.VITE_ORDER_SECRET;
   if (secret) headers['X-Order-Secret'] = secret;
 
-  const res = await fetch(apiUrl, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(payload),
-  });
+  let res;
+  try {
+    res = await fetch(apiUrl, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload),
+    });
+  } catch (err) {
+    const networkErr = new Error(
+      'Не удалось связаться с сервером заказов (сеть или CORS). Проверьте интернет и попробуйте снова.'
+    );
+    networkErr.code = 'network_error';
+    networkErr.cause = err;
+    throw networkErr;
+  }
 
   let data = null;
   try {
@@ -74,7 +86,14 @@ export async function submitOrderToBot(apiUrl, cart, extras = {}) {
   }
 
   if (!res.ok) {
-    const msg = data?.error || `Ошибка ${res.status}`;
+    const msg =
+      data?.message ||
+      data?.error ||
+      (res.status === 403
+        ? 'Сайт не разрешён на сервере заказов (ALLOWED_ORIGINS)'
+        : res.status === 401
+          ? 'Неверный секрет заказа (VITE_ORDER_SECRET)'
+          : `Ошибка ${res.status}`);
     const err = new Error(msg);
     err.status = res.status;
     err.error = data?.error || '';
@@ -89,5 +108,12 @@ export function getOrderApiUrl() {
   if (fromEnv) return String(fromEnv).trim();
 
   const shop = getShopInfo();
-  return shop.messengers?.telegram?.botOrderUrl?.trim() || '';
+  const fromShop = shop.messengers?.telegram?.botOrderUrl?.trim() || '';
+
+  // В dev — запрос через прокси Vite (без CORS).
+  if (import.meta.env.DEV && fromShop) {
+    return '/api/order';
+  }
+
+  return fromShop;
 }

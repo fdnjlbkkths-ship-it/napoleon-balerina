@@ -62,7 +62,7 @@ npx wrangler secret put ALLOWED_ORIGINS
 `ALLOWED_ORIGINS` пример:
 
 ```
-http://localhost:5173,https://fdnjlbkkths-ship-it.github.io
+http://localhost:5173,http://localhost:5174,https://fdnjlbkkths-ship-it.github.io
 ```
 
 Деплой:

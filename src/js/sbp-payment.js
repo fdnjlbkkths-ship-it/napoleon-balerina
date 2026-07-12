@@ -9,6 +9,8 @@
  *   // or the payment page URL from your bank / Мой налог
  */
 export const SBP_PAYMENT = {
+  /** Временно отключено — включите true и подставьте link, когда будет ссылка СБП */
+  enabled: false,
   /** Real SBP deep-link or payment page URL — replace before customers can pay */
   link: 'https://example.com/sbp-placeholder',
   buttonLabel: 'Оплатить через СБП',
@@ -17,10 +19,20 @@ export const SBP_PAYMENT = {
   confirmHint:
     'После оплаты напишите нам — подтвердим поступление. Чек сформируется в «Мой налог».',
   paymentLine: 'Оплата: ожидает (СБП)',
+  paymentLineDisabled: 'Оплата: уточнит менеджер',
 };
 
-/** @returns {boolean} true when `link` looks like a real (non-placeholder) URL */
+export function isSbpEnabled() {
+  return Boolean(SBP_PAYMENT.enabled);
+}
+
+export function getPaymentStatusLine() {
+  return isSbpEnabled() ? SBP_PAYMENT.paymentLine : SBP_PAYMENT.paymentLineDisabled;
+}
+
+/** @returns {boolean} true when SBP is enabled and `link` looks like a real URL */
 export function isSbpLinkConfigured() {
+  if (!isSbpEnabled()) return false;
   const link = String(SBP_PAYMENT.link || '').trim();
   if (!link || link === '#' || link.startsWith('javascript:')) return false;
   try {
