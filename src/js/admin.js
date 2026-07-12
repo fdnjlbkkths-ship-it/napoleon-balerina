@@ -107,7 +107,7 @@ function sanitizeDraftCatalog(draftCatalog, loaded) {
     if (!src) return p;
     const out = { ...p };
     let changed = false;
-    for (const key of ['name', 'description', 'fullDescription', 'composition', 'weight', 'size', 'prepTime']) {
+    for (const key of ['name', 'description', 'fullDescription', 'composition', 'weight', 'size', 'prepTime', 'shelfLife']) {
       if (!String(out[key] ?? '').trim() && String(src[key] ?? '').trim()) {
         out[key] = src[key];
         changed = true;
@@ -377,6 +377,7 @@ function selectProduct(id, { skipFlush = false } = {}) {
   $('#field-weight').value = product.weight || '';
   $('#field-size').value = product.size || '';
   $('#field-prepTime').value = product.prepTime || '';
+  $('#field-shelfLife').value = product.shelfLife || '';
   $('#field-description').value = product.description || '';
   $('#field-fullDescription').value = product.fullDescription || '';
   $('#field-composition').value = product.composition || '';
@@ -409,6 +410,7 @@ function flushEditorToCatalog() {
   product.weight = $('#field-weight').value.trim() || null;
   product.size = $('#field-size').value.trim() || null;
   product.prepTime = $('#field-prepTime').value.trim() || null;
+  product.shelfLife = $('#field-shelfLife').value.trim() || null;
   product.description = $('#field-description').value.trim();
   product.fullDescription = $('#field-fullDescription').value.trim();
   product.composition = $('#field-composition')?.value.trim() || product.composition || '';

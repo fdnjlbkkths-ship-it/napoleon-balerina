@@ -357,6 +357,12 @@ function createProductCard(product) {
     product.size
       ? `<p class="product-card__spec"><span class="product-card__meta-label">Размер</span><span class="product-card__spec-value">${escapeAttr(product.size)}</span></p>`
       : '',
+    product.prepTime
+      ? `<p class="product-card__spec"><span class="product-card__meta-label">Изготовление</span><span class="product-card__spec-value">${escapeAttr(product.prepTime)}</span></p>`
+      : '',
+    product.shelfLife
+      ? `<p class="product-card__spec"><span class="product-card__meta-label">Хранение</span><span class="product-card__spec-value">${escapeAttr(product.shelfLife)}</span></p>`
+      : '',
   ]
     .filter(Boolean)
     .join('');

@@ -16,7 +16,7 @@ function cleanProductDescription(text, { hasSpecs, hasFillingChoice }) {
   let out = String(text || '');
 
   if (hasSpecs) {
-    out = out.replace(/^(Размер|Вес|Срок(?: изготовления)?)\s*:.*$/gim, '');
+    out = out.replace(/^(Размер|Вес|Срок(?: изготовления)?|Изготовление|Хранение)\s*:.*$/gim, '');
   }
 
   if (hasFillingChoice) {
@@ -103,7 +103,10 @@ export function initProductPage() {
       ? `<div class="product-page__spec"><span class="product-page__spec-label">Размер</span><span class="product-page__spec-value">${escapeHtml(product.size)}</span></div>`
       : '',
     product.prepTime
-      ? `<div class="product-page__spec"><span class="product-page__spec-label">Срок</span><span class="product-page__spec-value">${escapeHtml(product.prepTime)}</span></div>`
+      ? `<div class="product-page__spec"><span class="product-page__spec-label">Изготовление</span><span class="product-page__spec-value">${escapeHtml(product.prepTime)}</span></div>`
+      : '',
+    product.shelfLife
+      ? `<div class="product-page__spec"><span class="product-page__spec-label">Хранение</span><span class="product-page__spec-value">${escapeHtml(product.shelfLife)}</span></div>`
       : '',
   ]
     .filter(Boolean)

@@ -8,7 +8,7 @@ export function formatCompositionLines(raw) {
 
   text = text
     .replace(/^(Общий\s+)?Состав\s*:?\s*/i, '')
-    .replace(/\n*(Размер|Вес|Срок(?:\s+изготовления)?)\s*:[\s\S]*$/i, '')
+    .replace(/\n*(Размер|Вес|Срок(?:\s+изготовления)?|Изготовление|Хранение)\s*:[\s\S]*$/i, '')
     .trim();
 
   if (!text) return [];
@@ -36,7 +36,7 @@ export function formatCompositionLines(raw) {
         .trim(),
     )
     .filter(Boolean)
-    .filter((l) => !/^(Размер|Вес|Срок)\b/i.test(l));
+    .filter((l) => !/^(Размер|Вес|Срок|Изготовление|Хранение)\b/i.test(l));
 }
 
 /** Достаёт состав из product.composition или из текста описания. */

@@ -158,7 +158,8 @@
       ],
       "alt": "Бенто торт «Ваша надпись»",
       "sourceUrl": "https://flowwow.com/bakery-products/bento-tort-serdechko-zashchitn/",
-      "hidden": false
+      "hidden": false,
+      "shelfLife": null
     },
     {
       "id": 2,
@@ -185,7 +186,8 @@
       ],
       "alt": "Бенто торт Шварцвальд Сердце (Чёрный лес)",
       "sourceUrl": "https://flowwow.com/bakery-products/bento-shvarcvald-chyorniy-les/",
-      "hidden": false
+      "hidden": false,
+      "shelfLife": null
     },
     {
       "id": 3,
@@ -213,7 +215,8 @@
       ],
       "alt": "Пирожные Анна Павлова — Фуэте от 4 шт.",
       "sourceUrl": "https://flowwow.com/bakery-products/anna-pavlova-5460/",
-      "hidden": false
+      "hidden": false,
+      "shelfLife": null
     },
     {
       "id": 4,
@@ -242,7 +245,8 @@
       ],
       "alt": "Пирожные Анна Павлова — сердце Балерины от 4 шт.",
       "sourceUrl": "https://flowwow.com/bakery-products/anna-pavlova-serdce-baleriny/",
-      "hidden": false
+      "hidden": false,
+      "shelfLife": null
     },
     {
       "id": 5,
@@ -270,7 +274,8 @@
       ],
       "alt": "Пирожное — шоколад «Любимая фиалка Балерины», 4 шт",
       "sourceUrl": "https://flowwow.com/bakery-products/pirozhnye-fialki-cvetok/",
-      "hidden": false
+      "hidden": false,
+      "shelfLife": null
     },
     {
       "id": 6,
@@ -299,7 +304,8 @@
       ],
       "alt": "Пирожное — белый шоколад «Фиалки для балерины» 2 шт",
       "sourceUrl": "https://flowwow.com/bakery-products/pirozhnoe-beliy-shokolad-fialk/",
-      "hidden": false
+      "hidden": false,
+      "shelfLife": null
     },
     {
       "id": 7,
@@ -326,7 +332,8 @@
       ],
       "alt": "Бенто торт Малиновое сердечко",
       "sourceUrl": "https://flowwow.com/bakery-products/lyubimoe-serdechko-4066/",
-      "hidden": false
+      "hidden": false,
+      "shelfLife": null
     },
     {
       "id": 8,
@@ -351,7 +358,8 @@
       ],
       "alt": "Бенто торт Шварцвальд с малиновым венком",
       "sourceUrl": "https://flowwow.com/bakery-products/tort-6175/",
-      "hidden": false
+      "hidden": false,
+      "shelfLife": null
     },
     {
       "id": 9,
@@ -380,7 +388,8 @@
       ],
       "alt": "Меренговый рулет с фисташкой",
       "sourceUrl": "https://flowwow.com/bakery-products/merengoviy-rulet-bez-yagod-7658/",
-      "hidden": false
+      "hidden": false,
+      "shelfLife": null
     },
     {
       "id": 10,
@@ -407,7 +416,8 @@
       ],
       "alt": "Бенто торт «Карамельная девочка — Тюльпановый сад»",
       "sourceUrl": "https://flowwow.com/bakery-products/bento-tort-karamelnaya-de-7663/",
-      "hidden": false
+      "hidden": false,
+      "shelfLife": null
     },
     {
       "id": 11,
@@ -431,7 +441,8 @@
       ],
       "alt": "Торт «Самой красивой»",
       "sourceUrl": "https://flowwow.com/bakery-products/bento-tort-samoy-krasivoy-9654/",
-      "hidden": false
+      "hidden": false,
+      "shelfLife": null
     },
     {
       "id": 12,
@@ -458,7 +469,8 @@
       ],
       "alt": "Пирожное картошка «Ангел мой»",
       "sourceUrl": "https://flowwow.com/bakery-products/pirozhnoe-kartoshka-angel-moy/",
-      "hidden": false
+      "hidden": false,
+      "shelfLife": null
     },
     {
       "id": 13,
@@ -481,7 +493,8 @@
       ],
       "alt": "Торт «Прага»",
       "sourceUrl": "https://flowwow.com/bakery-products/praga-2414/",
-      "hidden": false
+      "hidden": false,
+      "shelfLife": null
     },
     {
       "id": 14,
@@ -507,7 +520,8 @@
       ],
       "alt": "Бенто торт «Наполеон»",
       "sourceUrl": "https://flowwow.com/bakery-products/bento-napoleon-2723/",
-      "hidden": false
+      "hidden": false,
+      "shelfLife": null
     },
     {
       "id": 15,
@@ -535,7 +549,8 @@
       ],
       "alt": "Мини набор пирожных-картошка",
       "sourceUrl": "https://flowwow.com/bakery-products/mini-nabor-pirozhnyh-kartoshka/",
-      "hidden": false
+      "hidden": false,
+      "shelfLife": null
     },
     {
       "id": 16,
@@ -564,7 +579,8 @@
       ],
       "alt": "Меренговый рулет с ягодами",
       "sourceUrl": "https://flowwow.com/bakery-products/merengoviy-rulet-7927/",
-      "hidden": false
+      "hidden": false,
+      "shelfLife": null
     },
     {
       "id": 17,
@@ -589,7 +605,8 @@
       ],
       "alt": "Подарочный набор шоколадных конфет «Любимая помада балерины»",
       "sourceUrl": "https://flowwow.com/bakery-products/podarochniy-nabor-shokola-5393/",
-      "hidden": false
+      "hidden": false,
+      "shelfLife": null
     },
     {
       "id": 18,
@@ -614,7 +631,8 @@
       ],
       "alt": "Пирожные «Прага»",
       "sourceUrl": "https://flowwow.com/bakery-products/pirozhnye-praga/",
-      "hidden": false
+      "hidden": false,
+      "shelfLife": null
     },
     {
       "id": 19,
@@ -643,7 +661,8 @@
         "images/products/flowwow/pirozhnoe-kartoshka-moey-chelo-2.jpg"
       ],
       "alt": "Пирожное-картошка «Моей ЧеLOVEчке»",
-      "sourceUrl": "https://flowwow.com/bakery-products/pirozhnoe-kartoshka-moey-chelo/"
+      "sourceUrl": "https://flowwow.com/bakery-products/pirozhnoe-kartoshka-moey-chelo/",
+      "shelfLife": null
     },
     {
       "id": 20,
@@ -671,7 +690,8 @@
       ],
       "alt": "Набор пирожных-картошка для любимых людей",
       "sourceUrl": "https://flowwow.com/bakery-products/nabor-pirozhnyh-kartoshka-4813/",
-      "hidden": false
+      "hidden": false,
+      "shelfLife": null
     },
     {
       "id": 21,
@@ -696,7 +716,8 @@
       ],
       "alt": "Набор из 4 пирожных «Балерина» в белом шоколаде",
       "sourceUrl": "https://flowwow.com/bakery-products/podarochniy-nabor-pirozhnyh-ba/",
-      "hidden": false
+      "hidden": false,
+      "shelfLife": null
     },
     {
       "id": 22,
@@ -724,7 +745,8 @@
         "images/products/flowwow/pirozhnoe-molochniy-shokolad-f-1.jpg"
       ],
       "alt": "Пирожное — молочный шоколад «Фиалки для балерины» 2 шт",
-      "sourceUrl": "https://flowwow.com/bakery-products/pirozhnoe-molochniy-shokolad-f/"
+      "sourceUrl": "https://flowwow.com/bakery-products/pirozhnoe-molochniy-shokolad-f/",
+      "shelfLife": null
     },
     {
       "id": 23,
@@ -748,7 +770,8 @@
       ],
       "alt": "Пирожное «Картошка»",
       "sourceUrl": "https://flowwow.com/bakery-products/pirozhnoe-kartoshka-zashchitni/",
-      "hidden": false
+      "hidden": false,
+      "shelfLife": null
     },
     {
       "id": 24,
@@ -773,7 +796,8 @@
       ],
       "alt": "Бенто торт «Банан-Карамель»",
       "sourceUrl": "https://flowwow.com/bakery-products/bento-tort-8-marta-3069/",
-      "hidden": false
+      "hidden": false,
+      "shelfLife": null
     },
     {
       "id": 25,
@@ -799,7 +823,8 @@
         "images/products/flowwow/bento-tort-karamelnaya-devochk-3.jpg"
       ],
       "alt": "Бенто торт «Молочная (карамельная) девочка» с вишней конфи",
-      "sourceUrl": "https://flowwow.com/bakery-products/bento-tort-karamelnaya-devochk/"
+      "sourceUrl": "https://flowwow.com/bakery-products/bento-tort-karamelnaya-devochk/",
+      "shelfLife": null
     },
     {
       "id": 26,
@@ -825,7 +850,8 @@
         "images/products/flowwow/bento-tort-karamelnaya-de-9982-1.jpg"
       ],
       "alt": "Бенто торт «Молочная (карамельная) девочка» с малиной конфи",
-      "sourceUrl": "https://flowwow.com/bakery-products/bento-tort-karamelnaya-de-9982/"
+      "sourceUrl": "https://flowwow.com/bakery-products/bento-tort-karamelnaya-de-9982/",
+      "shelfLife": null
     },
     {
       "id": 27,
@@ -851,7 +877,8 @@
         "images/products/flowwow/bento-tort-malinoviy-venochek--3.jpg"
       ],
       "alt": "Бенто торт «Малиновый веночек»",
-      "sourceUrl": "https://flowwow.com/bakery-products/bento-tort-malinoviy-venochek-/"
+      "sourceUrl": "https://flowwow.com/bakery-products/bento-tort-malinoviy-venochek-/",
+      "shelfLife": null
     },
     {
       "id": 28,
@@ -879,7 +906,8 @@
         "images/products/flowwow/yashchik-fialok-2.jpg"
       ],
       "alt": "Торт «Цветы»",
-      "sourceUrl": "https://flowwow.com/bakery-products/yashchik-fialok/"
+      "sourceUrl": "https://flowwow.com/bakery-products/yashchik-fialok/",
+      "shelfLife": null
     },
     {
       "id": 29,
@@ -907,7 +935,8 @@
         "images/products/flowwow/tort-cvety-dlya-mamy-1440-1.jpg"
       ],
       "alt": "Торт «Цветы для мамы»",
-      "sourceUrl": "https://flowwow.com/bakery-products/tort-cvety-dlya-mamy-1440/"
+      "sourceUrl": "https://flowwow.com/bakery-products/tort-cvety-dlya-mamy-1440/",
+      "shelfLife": null
     },
     {
       "id": 30,
@@ -933,7 +962,8 @@
         "images/products/flowwow/tort-na-den-rozhdeniya-s--2161-2.jpg"
       ],
       "alt": "Торт-подарок с ягодами",
-      "sourceUrl": "https://flowwow.com/bakery-products/tort-na-den-rozhdeniya-s--2161/"
+      "sourceUrl": "https://flowwow.com/bakery-products/tort-na-den-rozhdeniya-s--2161/",
+      "shelfLife": null
     },
     {
       "id": 31,
@@ -957,7 +987,8 @@
         "images/products/flowwow/tort-praga-morskoy-moryaku-pod-1.jpg"
       ],
       "alt": "Торт «Прага» морской",
-      "sourceUrl": "https://flowwow.com/bakery-products/tort-praga-morskoy-moryaku-pod/"
+      "sourceUrl": "https://flowwow.com/bakery-products/tort-praga-morskoy-moryaku-pod/",
+      "shelfLife": null
     },
     {
       "id": 32,
@@ -982,7 +1013,8 @@
       ],
       "alt": "Торт «Наполеон»",
       "sourceUrl": "https://flowwow.com/bakery-products/napoleon-4721/",
-      "hidden": false
+      "hidden": false,
+      "shelfLife": null
     },
     {
       "id": 33,
@@ -1012,7 +1044,8 @@
       ],
       "alt": "Торт «Балерина»",
       "sourceUrl": "https://flowwow.com/bakery-products/tort-balerina/",
-      "hidden": false
+      "hidden": false,
+      "shelfLife": null
     },
     {
       "id": 34,
@@ -1036,7 +1069,8 @@
         "images/products/flowwow/pchela-v-hrustale-2.jpg"
       ],
       "alt": "Колье-чокер с подвеской «Пчела в хрустале»",
-      "sourceUrl": "https://flowwow.com/jewelry/pchela-v-hrustale/"
+      "sourceUrl": "https://flowwow.com/jewelry/pchela-v-hrustale/",
+      "shelfLife": null
     },
     {
       "id": 35,
@@ -1060,7 +1094,8 @@
         "images/products/flowwow/kapriz-baleriny-2.jpg"
       ],
       "alt": "Колье-чокер с подвеской «Каприз Балерины» (авантюрин)",
-      "sourceUrl": "https://flowwow.com/jewelry/kapriz-baleriny/"
+      "sourceUrl": "https://flowwow.com/jewelry/kapriz-baleriny/",
+      "shelfLife": null
     },
     {
       "id": 36,
@@ -1084,7 +1119,8 @@
         "images/products/flowwow/choker-ty-ideal-1.jpg"
       ],
       "alt": "Чокер «Ты — Идеал»",
-      "sourceUrl": "https://flowwow.com/jewelry/choker-ty-ideal/"
+      "sourceUrl": "https://flowwow.com/jewelry/choker-ty-ideal/",
+      "shelfLife": null
     },
     {
       "id": 37,
@@ -1108,7 +1144,8 @@
         "images/products/flowwow/smorodinoviy-kapriz-agat-1.jpg"
       ],
       "alt": "Колье-чокер с подвеской «Каприз Балерины» (агат)",
-      "sourceUrl": "https://flowwow.com/jewelry/smorodinoviy-kapriz-agat/"
+      "sourceUrl": "https://flowwow.com/jewelry/smorodinoviy-kapriz-agat/",
+      "shelfLife": null
     },
     {
       "id": 38,
@@ -1133,7 +1170,8 @@
       ],
       "alt": "Колье-чокер «Ты — совершенство»",
       "sourceUrl": "https://flowwow.com/jewelry/kole-choker-ty-sovershenstvo/",
-      "hidden": false
+      "hidden": false,
+      "shelfLife": null
     },
     {
       "id": 39,
@@ -1158,7 +1196,8 @@
       ],
       "alt": "Набор мыла ручной работы",
       "sourceUrl": "https://flowwow.com/cosmetics-perfume/nabor-myla-ruchnoy-raboty-dlya/",
-      "hidden": false
+      "hidden": false,
+      "shelfLife": null
     },
     {
       "id": 40,
@@ -1185,7 +1224,8 @@
         "images/products/flowwow/merengoviy-rulet-k-pashe-1.jpg"
       ],
       "alt": "Меренговый рулет «К празднику»",
-      "sourceUrl": "https://flowwow.com/bakery-products/merengoviy-rulet-k-pashe/"
+      "sourceUrl": "https://flowwow.com/bakery-products/merengoviy-rulet-k-pashe/",
+      "shelfLife": null
     },
     {
       "id": 41,
@@ -1213,7 +1253,8 @@
         "images/products/flowwow/pirozhnye-pari-brest-1.jpg"
       ],
       "alt": "Эклеры «Пари-Брест» 4 шт.",
-      "sourceUrl": "https://flowwow.com/bakery-products/pirozhnye-pari-brest/"
+      "sourceUrl": "https://flowwow.com/bakery-products/pirozhnye-pari-brest/",
+      "shelfLife": null
     },
     {
       "id": 42,
@@ -1237,7 +1278,8 @@
         "images/products/flowwow/pirozhnye-pari-brest-6-sht-3.jpg"
       ],
       "alt": "Эклеры «Пари-Брест» 6 шт.",
-      "sourceUrl": "https://flowwow.com/bakery-products/pirozhnye-pari-brest-6-sht/"
+      "sourceUrl": "https://flowwow.com/bakery-products/pirozhnye-pari-brest-6-sht/",
+      "shelfLife": null
     },
     {
       "id": 43,
@@ -1262,7 +1304,8 @@
       ],
       "alt": "Подарочный набор шоколадных конфет «С 8 Марта»",
       "sourceUrl": "https://flowwow.com/bakery-products/podarochniy-nabor-shokola-7338/",
-      "hidden": false
+      "hidden": false,
+      "shelfLife": null
     },
     {
       "id": 44,
@@ -1290,7 +1333,8 @@
       ],
       "alt": "Торт свадебный",
       "sourceUrl": "https://flowwow.com/bakery-products/tort-svadebniy-1494/",
-      "hidden": false
+      "hidden": false,
+      "shelfLife": null
     }
   ],
   "reviews": [
