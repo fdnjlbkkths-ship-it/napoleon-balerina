@@ -2244,6 +2244,38 @@
     color: $color-text-light;
   }
 
+  &__otp-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.55rem;
+    align-items: stretch;
+
+    input {
+      letter-spacing: 0.12em;
+      font-weight: 600;
+    }
+
+    .btn {
+      white-space: nowrap;
+      min-height: 48px;
+    }
+  }
+
+  &__otp-status {
+    margin: 0.45rem 0 0;
+    font-size: 0.8125rem;
+    color: $color-caramel;
+    font-weight: 600;
+
+    &.is-error {
+      color: #b42318;
+    }
+
+    &.is-ok {
+      color: darken($color-caramel, 8%);
+    }
+  }
+
   &__preview {
     background: $color-cream;
     border: 1px solid rgba($color-caramel, 0.2);

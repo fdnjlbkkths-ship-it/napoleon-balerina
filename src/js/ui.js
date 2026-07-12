@@ -13,6 +13,7 @@ import { buildOrderMessagePlain } from './order-message.js';
 import { getMessengerList, MESSENGER_ICONS } from './messengers.js';
 import { submitOrderToBot, OrderChallengeRequiredError } from './order-api.js';
 import { initPhoneMask, getPhoneValue, isPhoneComplete } from './phone-mask.js';
+import { sendEmailOtp, verifyEmailOtp, isValidEmail, normalizeEmail } from './email-otp.js';
 import { initAddressAutocomplete, getAddressValue } from './address-autocomplete.js';
 import { initDeliveryPickers, renderDeliveryPickersHtml } from './datetime-picker.js';
 import { lockBodyScroll, unlockBodyScroll } from './pointer.js';
@@ -173,12 +174,20 @@ function renderCart() {
   if (totalEl) totalEl.textContent = formatPrice(getCartTotal(cart));
 }
 
+let emailVerifiedToken = '';
+let emailVerifiedAddress = '';
+
 function getCheckoutExtras() {
   const phoneEl = document.getElementById('checkout-phone');
   const addressEl = document.getElementById('checkout-address');
+  const email = normalizeEmail(document.getElementById('checkout-email')?.value || '');
+  const token =
+    email && email === emailVerifiedAddress && emailVerifiedToken ? emailVerifiedToken : '';
   return {
     name: document.getElementById('checkout-name')?.value || '',
     phone: phoneEl ? getPhoneValue(phoneEl) : '',
+    email,
+    emailToken: token,
     address: getAddressValue(addressEl),
     deliveryDate: document.getElementById('checkout-date')?.value || '',
     deliveryTime: document.getElementById('checkout-time')?.value || '',
@@ -228,6 +237,22 @@ function renderCheckoutView() {
           <input type="tel" id="checkout-phone" inputmode="numeric" autocomplete="tel" placeholder="+7 (9XX) XXX-XX-XX" value="${escapeAttr(extras.phone || '+7 (9')}" required aria-required="true" aria-describedby="checkout-phone-hint">
           <span class="field-hint" id="checkout-phone-hint">Обязательно. Формат уже с +7 (9 — допишите номер полностью</span>
           <span class="field-error" id="checkout-phone-error" hidden>Укажите полный номер телефона</span>
+        </div>
+        <div class="form-group" data-checkout-email-group>
+          <label for="checkout-email">Email <span class="required-mark" aria-hidden="true">*</span></label>
+          <input type="email" id="checkout-email" autocomplete="email" placeholder="anna@mail.ru" value="${escapeAttr(extras.email || '')}" required aria-required="true" aria-describedby="checkout-email-hint">
+          <span class="field-hint" id="checkout-email-hint">На эту почту придёт код подтверждения заказа</span>
+          <span class="field-error" id="checkout-email-error" hidden>Укажите корректный email</span>
+        </div>
+        <div class="form-group cart-checkout__otp" data-checkout-otp-group>
+          <label for="checkout-otp">Код из письма <span class="required-mark" aria-hidden="true">*</span></label>
+          <div class="cart-checkout__otp-row">
+            <input type="text" id="checkout-otp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6 цифр" aria-describedby="checkout-otp-hint">
+            <button type="button" class="btn btn--ghost btn--small" id="checkout-otp-send">Получить код</button>
+          </div>
+          <span class="field-hint" id="checkout-otp-hint">Сначала нажмите «Получить код», затем введите код из письма</span>
+          <span class="field-error" id="checkout-otp-error" hidden>Подтвердите email кодом из письма</span>
+          <p class="cart-checkout__otp-status" id="checkout-otp-status" hidden></p>
         </div>
         <div class="form-group">
           <label>Адрес доставки</label>
@@ -286,12 +311,24 @@ function renderCheckoutView() {
   initDeliveryPickers(document.getElementById('delivery-pickers'), {
     onChange: updateCheckoutPreview,
   });
+  initCheckoutEmailOtp();
 
   updateCheckoutPreview();
 
   document.getElementById('checkout-name')?.addEventListener('input', updateCheckoutPreview);
   document.getElementById('checkout-phone')?.addEventListener('input', () => {
     clearCheckoutPhoneError();
+    updateCheckoutPreview();
+  });
+  document.getElementById('checkout-email')?.addEventListener('input', () => {
+    clearCheckoutEmailError();
+    const email = normalizeEmail(document.getElementById('checkout-email')?.value || '');
+    if (email !== emailVerifiedAddress) {
+      emailVerifiedToken = '';
+      emailVerifiedAddress = '';
+      setOtpStatus('');
+      clearCheckoutOtpError();
+    }
     updateCheckoutPreview();
   });
   document.getElementById('checkout-comment')?.addEventListener('input', updateCheckoutPreview);
@@ -353,12 +390,22 @@ function updateCheckoutPreview() {
         e.preventDefault();
         return;
       }
+      if (!ensureCheckoutEmail()) {
+        e.preventDefault();
+        return;
+      }
+      if (!ensureEmailVerified()) {
+        e.preventDefault();
+        return;
+      }
 
       if (messenger.viaBot) {
         e.preventDefault();
         btn.classList.add('is-loading');
         try {
           await submitBotOrderWithAntiBot(messenger.orderApiUrl);
+          emailVerifiedToken = '';
+          emailVerifiedAddress = '';
           clearCart();
           closeCart();
           window.alert('Заказ отправлен в Telegram. Мы скоро свяжемся с вами!');
@@ -371,9 +418,16 @@ function updateCheckoutPreview() {
             );
           } else if (err?.status === 400 && /phone/i.test(String(err?.message || err?.error || ''))) {
             ensureCheckoutPhone();
+          } else if (
+            err?.status === 400 &&
+            /email/i.test(String(err?.message || err?.error || ''))
+          ) {
+            if (/verif/i.test(String(err?.error || err?.message || ''))) ensureEmailVerified();
+            else ensureCheckoutEmail();
           } else {
             window.alert(
-              'Не удалось отправить заказ. Проверьте интернет или оформите через WhatsApp / MAX.'
+              err?.message ||
+                'Не удалось отправить заказ. Проверьте интернет или оформите через WhatsApp / MAX.'
             );
           }
         } finally {
@@ -428,9 +482,24 @@ function ensureCheckoutPhone() {
   input.setAttribute('aria-invalid', 'true');
   if (error) error.hidden = false;
 
-  const scroller = document.getElementById('cart-body');
-  const target = group || input;
+  scrollCheckoutFieldIntoView(group || input);
 
+  setTimeout(() => {
+    input.focus({ preventScroll: true });
+    const len = input.value.length;
+    try {
+      input.setSelectionRange(len, len);
+    } catch {
+      /* ignore */
+    }
+  }, 320);
+
+  return false;
+}
+
+function scrollCheckoutFieldIntoView(target) {
+  const scroller = document.getElementById('cart-body');
+  if (!target) return;
   requestAnimationFrame(() => {
     if (scroller) {
       const scrollerRect = scroller.getBoundingClientRect();
@@ -444,19 +513,139 @@ function ensureCheckoutPhone() {
     } else {
       target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
     }
+  });
+}
 
-    setTimeout(() => {
-      input.focus({ preventScroll: true });
-      const len = input.value.length;
-      try {
-        input.setSelectionRange(len, len);
-      } catch {
-        /* ignore */
-      }
-    }, 320);
+function clearCheckoutEmailError() {
+  const group = document.querySelector('[data-checkout-email-group]');
+  const input = document.getElementById('checkout-email');
+  const error = document.getElementById('checkout-email-error');
+  group?.classList.remove('is-invalid');
+  input?.classList.remove('is-invalid');
+  input?.removeAttribute('aria-invalid');
+  if (error) error.hidden = true;
+}
+
+function clearCheckoutOtpError() {
+  const group = document.querySelector('[data-checkout-otp-group]');
+  const input = document.getElementById('checkout-otp');
+  const error = document.getElementById('checkout-otp-error');
+  group?.classList.remove('is-invalid');
+  input?.classList.remove('is-invalid');
+  if (error) error.hidden = true;
+}
+
+function setOtpStatus(text, isError = false) {
+  const el = document.getElementById('checkout-otp-status');
+  if (!el) return;
+  if (!text) {
+    el.hidden = true;
+    el.textContent = '';
+    el.classList.remove('is-error', 'is-ok');
+    return;
+  }
+  el.hidden = false;
+  el.textContent = text;
+  el.classList.toggle('is-error', isError);
+  el.classList.toggle('is-ok', !isError);
+}
+
+function ensureCheckoutEmail() {
+  const input = document.getElementById('checkout-email');
+  const group = document.querySelector('[data-checkout-email-group]');
+  const error = document.getElementById('checkout-email-error');
+  if (!input) return false;
+
+  if (isValidEmail(input.value)) {
+    clearCheckoutEmailError();
+    return true;
+  }
+
+  group?.classList.add('is-invalid');
+  input.classList.add('is-invalid');
+  input.setAttribute('aria-invalid', 'true');
+  if (error) {
+    error.hidden = false;
+    error.textContent = 'Укажите корректный email';
+  }
+  scrollCheckoutFieldIntoView(group || input);
+  setTimeout(() => input.focus({ preventScroll: true }), 320);
+  return false;
+}
+
+function ensureEmailVerified() {
+  const extras = getCheckoutExtras();
+  const group = document.querySelector('[data-checkout-otp-group]');
+  const input = document.getElementById('checkout-otp');
+  const error = document.getElementById('checkout-otp-error');
+
+  if (extras.emailToken && extras.email) {
+    clearCheckoutOtpError();
+    return true;
+  }
+
+  group?.classList.add('is-invalid');
+  input?.classList.add('is-invalid');
+  if (error) {
+    error.hidden = false;
+    error.textContent = 'Получите код на почту и подтвердите email';
+  }
+  scrollCheckoutFieldIntoView(group || input);
+  setTimeout(() => input?.focus({ preventScroll: true }), 320);
+  return false;
+}
+
+function initCheckoutEmailOtp() {
+  const sendBtn = document.getElementById('checkout-otp-send');
+  const otpInput = document.getElementById('checkout-otp');
+  if (!sendBtn || !otpInput) return;
+
+  sendBtn.addEventListener('click', async () => {
+    if (!ensureCheckoutEmail()) return;
+    const email = normalizeEmail(document.getElementById('checkout-email').value);
+    sendBtn.disabled = true;
+    sendBtn.textContent = 'Отправка…';
+    setOtpStatus('');
+    clearCheckoutOtpError();
+    try {
+      await sendEmailOtp(email);
+      emailVerifiedToken = '';
+      emailVerifiedAddress = '';
+      setOtpStatus('Код отправлен на почту. Проверьте входящие и папку «Спам».');
+      otpInput.focus();
+    } catch (err) {
+      console.error(err);
+      setOtpStatus(err.message || 'Не удалось отправить код', true);
+    } finally {
+      sendBtn.disabled = false;
+      sendBtn.textContent = 'Получить код';
+    }
   });
 
-  return false;
+  const tryVerify = async () => {
+    const code = otpInput.value.replace(/\D/g, '');
+    if (code.length !== 6) return;
+    if (!ensureCheckoutEmail()) return;
+    const email = normalizeEmail(document.getElementById('checkout-email').value);
+    try {
+      const data = await verifyEmailOtp(email, code);
+      emailVerifiedToken = data.emailToken || '';
+      emailVerifiedAddress = email;
+      clearCheckoutOtpError();
+      setOtpStatus('Email подтверждён ✓');
+      updateCheckoutPreview();
+    } catch (err) {
+      emailVerifiedToken = '';
+      emailVerifiedAddress = '';
+      setOtpStatus(err.message || 'Неверный код', true);
+    }
+  };
+
+  otpInput.addEventListener('input', () => {
+    otpInput.value = otpInput.value.replace(/\D/g, '').slice(0, 6);
+    clearCheckoutOtpError();
+    if (otpInput.value.length === 6) tryVerify();
+  });
 }
 
 async function submitBotOrderWithAntiBot(apiUrl) {

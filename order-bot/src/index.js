@@ -3,6 +3,8 @@
  *
  * Маршруты:
  *   POST /order      — новый заказ с сайта
+ *   POST /otp/send   — отправить код на email
+ *   POST /otp/verify — подтвердить код
  *   POST /analytics  — pageview (только после согласия на сайте)
  *   POST /telegram   — webhook Bot API
  *   POST /setup      — меню команд «/»
@@ -94,6 +96,14 @@ export default {
         return cors(await handleOrder(request, env), request, env);
       }
 
+      if (path === '/otp/send' && request.method === 'POST') {
+        return cors(await handleOtpSend(request, env), request, env);
+      }
+
+      if (path === '/otp/verify' && request.method === 'POST') {
+        return cors(await handleOtpVerify(request, env), request, env);
+      }
+
       if (path === '/analytics' && request.method === 'POST') {
         return cors(await handleAnalytics(request, env), request, env);
       }
@@ -147,6 +157,20 @@ async function handleOrder(request, env) {
     return json({ error: 'phone_required', message: 'Укажите полный номер телефона' }, 400);
   }
 
+  const email = normalizeEmail(body.email);
+  if (!email) {
+    return json({ error: 'email_required', message: 'Укажите email' }, 400);
+  }
+
+  const emailToken = clean(body.emailToken, 80);
+  const verified = await consumeEmailToken(env, emailToken, email);
+  if (!verified) {
+    return json(
+      { error: 'email_not_verified', message: 'Подтвердите email кодом из письма' },
+      400
+    );
+  }
+
   const antiBot = await evaluateAntiBot(body, env, ip);
   if (antiBot.action === 'reject') {
     return json({ error: antiBot.error || 'Forbidden' }, antiBot.status || 403);
@@ -170,6 +194,7 @@ async function handleOrder(request, env) {
     total: Number(body.total) || calcTotal(items),
     name: clean(body.name, 80),
     phone: phoneRaw,
+    email,
     address: clean(body.address, 200),
     deliveryDate: clean(body.deliveryDate, 20),
     deliveryTime: clean(body.deliveryTime, 20),
@@ -195,6 +220,186 @@ async function handleOrder(request, env) {
   }
 
   return json({ ok: true, orderId: order.id });
+}
+
+/* ───────── Email OTP (free via Resend) ───────── */
+
+function normalizeEmail(value) {
+  const email = String(value || '')
+    .trim()
+    .toLowerCase()
+    .slice(0, 120);
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return '';
+  return email;
+}
+
+function makeOtpCode() {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+function makeEmailToken() {
+  const bytes = new Uint8Array(24);
+  crypto.getRandomValues(bytes);
+  return [...bytes].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function handleOtpSend(request, env) {
+  if (!checkOrigin(request, env)) {
+    return json({ error: 'Forbidden origin' }, 403);
+  }
+
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  if (!(await allowRate(env, `otp-ip:${ip}`, 8, 60 * 60))) {
+    return json({ error: 'rate_limited', message: 'Слишком много запросов. Попробуйте позже.' }, 429);
+  }
+
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return json({ error: 'Invalid JSON' }, 400);
+  }
+
+  const email = normalizeEmail(body.email);
+  if (!email) {
+    return json({ error: 'email_required', message: 'Укажите корректный email' }, 400);
+  }
+
+  if (!(await allowRate(env, `otp-email:${email}`, 5, 60 * 60))) {
+    return json({ error: 'rate_limited', message: 'На этот email уже отправляли код. Подождите.' }, 429);
+  }
+
+  const code = makeOtpCode();
+  const codeHash = await hashText(code);
+  await env.ORDERS.put(
+    `otp:code:${email}`,
+    JSON.stringify({ hash: codeHash, attempts: 0, createdAt: Date.now() }),
+    { expirationTtl: 60 * 10 }
+  );
+
+  const sent = await sendOtpEmail(env, email, code);
+  if (!sent.ok) {
+    return json(
+      {
+        error: 'email_send_failed',
+        message: sent.message || 'Не удалось отправить письмо. Проверьте настройки почты.',
+      },
+      503
+    );
+  }
+
+  return json({ ok: true, expiresInSec: 600 });
+}
+
+async function handleOtpVerify(request, env) {
+  if (!checkOrigin(request, env)) {
+    return json({ error: 'Forbidden origin' }, 403);
+  }
+
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  if (!(await allowRate(env, `otp-verify:${ip}`, 30, 60 * 60))) {
+    return json({ error: 'rate_limited', message: 'Слишком много попыток' }, 429);
+  }
+
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return json({ error: 'Invalid JSON' }, 400);
+  }
+
+  const email = normalizeEmail(body.email);
+  const code = String(body.code || '').replace(/\D/g, '').slice(0, 8);
+  if (!email || code.length !== 6) {
+    return json({ error: 'invalid_code', message: 'Введите 6-значный код из письма' }, 400);
+  }
+
+  const key = `otp:code:${email}`;
+  const stored = await env.ORDERS.get(key, { type: 'json' });
+  if (!stored?.hash) {
+    return json({ error: 'code_expired', message: 'Код устарел. Запросите новый.' }, 400);
+  }
+
+  if ((stored.attempts || 0) >= 5) {
+    await env.ORDERS.delete(key);
+    return json({ error: 'too_many_attempts', message: 'Слишком много попыток. Запросите новый код.' }, 400);
+  }
+
+  const codeHash = await hashText(code);
+  if (codeHash !== stored.hash) {
+    stored.attempts = (stored.attempts || 0) + 1;
+    await env.ORDERS.put(key, JSON.stringify(stored), { expirationTtl: 60 * 10 });
+    return json({ error: 'invalid_code', message: 'Неверный код' }, 400);
+  }
+
+  await env.ORDERS.delete(key);
+  const token = makeEmailToken();
+  await env.ORDERS.put(
+    `otp:token:${token}`,
+    JSON.stringify({ email, createdAt: Date.now() }),
+    { expirationTtl: 60 * 30 }
+  );
+
+  return json({ ok: true, emailToken: token, expiresInSec: 1800 });
+}
+
+async function consumeEmailToken(env, token, email) {
+  if (!token || !email) return false;
+  const key = `otp:token:${token}`;
+  const data = await env.ORDERS.get(key, { type: 'json' });
+  if (!data?.email || data.email !== email) return false;
+  await env.ORDERS.delete(key);
+  return true;
+}
+
+async function sendOtpEmail(env, email, code) {
+  const apiKey = env.RESEND_API_KEY;
+  const from = env.EMAIL_FROM || 'Наполеон и Балерина <onboarding@resend.dev>';
+
+  // Без ключа Resend письмо клиенту не уйдёт (нужен бесплатный API-ключ).
+  if (!apiKey) {
+    return {
+      ok: false,
+      message:
+        'Почта не настроена. Создайте бесплатный ключ на resend.com и выполните: npx wrangler secret put RESEND_API_KEY',
+    };
+  }
+
+  try {
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from,
+        to: [email],
+        subject: 'Код подтверждения заказа — Наполеон и Балерина',
+        text:
+          `Ваш код подтверждения заказа: ${code}\n\n` +
+          `Код действует 10 минут.\n` +
+          `Если вы не оформляли заказ, просто проигнорируйте письмо.\n\n` +
+          `Наполеон и Балерина`,
+        html:
+          `<p>Ваш код подтверждения заказа:</p>` +
+          `<p style="font-size:28px;font-weight:700;letter-spacing:4px">${code}</p>` +
+          `<p>Код действует 10 минут.</p>` +
+          `<p style="color:#888">Если вы не оформляли заказ, проигнорируйте письмо.</p>` +
+          `<p>Наполеон и Балерина</p>`,
+      }),
+    });
+
+    if (!res.ok) {
+      const errText = await res.text().catch(() => '');
+      console.error('resend', res.status, errText);
+      return { ok: false, message: 'Не удалось отправить письмо. Проверьте email или настройки Resend.' };
+    }
+    return { ok: true };
+  } catch (err) {
+    console.error('resend fetch', err);
+    return { ok: false, message: 'Ошибка отправки письма' };
+  }
 }
 
 /* ───────── Anti-bot (reCAPTCHA + heuristics) ───────── */
@@ -861,6 +1066,7 @@ function formatOrderHtml(order) {
 
   if (order.name) lines.push(`👤 ${escapeHtml(order.name)}`);
   if (order.phone) lines.push(`📞 ${escapeHtml(order.phone)}`);
+  if (order.email) lines.push(`✉️ ${escapeHtml(order.email)}`);
   if (order.address) lines.push(`📍 ${escapeHtml(order.address)}`);
   if (order.deliveryDate || order.deliveryTime) {
     lines.push(`📅 ${escapeHtml(formatDateTime(order.deliveryDate, order.deliveryTime))}`);

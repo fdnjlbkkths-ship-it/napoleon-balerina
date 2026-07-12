@@ -30,6 +30,7 @@ export function buildOrderMessage(cart, extras = {}) {
 
   if (extras.name?.trim()) lines.push(`👤 Имя: ${extras.name.trim()}`);
   if (extras.phone?.trim()) lines.push(`📞 Телефон: ${extras.phone.trim()}`);
+  if (extras.email?.trim()) lines.push(`✉️ Email: ${extras.email.trim()}`);
   if (extras.address?.trim()) lines.push(`📍 Адрес: ${extras.address.trim()}`);
   if (extras.deliveryDate?.trim()) {
     lines.push(`📅 Дата доставки: ${formatDeliveryDate(extras.deliveryDate.trim())}`);
@@ -42,6 +43,7 @@ export function buildOrderMessage(cart, extras = {}) {
   if (
     extras.name ||
     extras.phone ||
+    extras.email ||
     extras.address ||
     extras.deliveryDate ||
     extras.deliveryTime ||
