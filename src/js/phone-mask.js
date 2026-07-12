@@ -54,6 +54,13 @@ export function formatRuPhone(digits) {
   return result;
 }
 
+function syncPhoneInput(input) {
+  const digits = normalizePhoneDigits(input.value || '');
+  input.dataset.rawPhone = digits;
+  input.value = digits.length <= 2 ? '+7 (9' : formatRuPhone(digits);
+  return digits;
+}
+
 export function initPhoneMask(input) {
   if (!input) return;
 
@@ -62,6 +69,8 @@ export function initPhoneMask(input) {
   if (!input.value.trim()) {
     input.value = PREFIX;
     input.dataset.rawPhone = '79';
+  } else {
+    syncPhoneInput(input);
   }
 
   input.addEventListener('focus', () => {
@@ -102,19 +111,31 @@ export function initPhoneMask(input) {
       input.value = PREFIX;
       input.dataset.rawPhone = '79';
     } else {
+      input.dataset.rawPhone = digits;
       input.value = formatRuPhone(digits);
     }
+  });
+
+  // Автозаполнение браузера может не вызвать input
+  input.addEventListener('change', () => {
+    syncPhoneInput(input);
   });
 }
 
 export function getPhoneValue(input) {
   if (!input) return '';
-  const digits = normalizePhoneDigits(input.dataset.rawPhone || input.value);
+  const digits = normalizePhoneDigits(input.value || '');
   if (digits.length <= 2) return '';
+  input.dataset.rawPhone = digits;
   return formatRuPhone(digits);
 }
 
 export function isPhoneComplete(input) {
-  const digits = normalizePhoneDigits(input?.dataset.rawPhone || input?.value || '');
-  return digits.length === 11;
+  if (!input) return false;
+  const digits = normalizePhoneDigits(input.value || '');
+  if (digits.length === 11) {
+    input.dataset.rawPhone = digits;
+    return true;
+  }
+  return false;
 }

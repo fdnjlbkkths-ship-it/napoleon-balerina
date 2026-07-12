@@ -289,6 +289,7 @@ function renderStepPanel() {
     };
     phoneInput?.addEventListener('input', clearValidPhoneError);
     phoneInput?.addEventListener('change', clearValidPhoneError);
+    phoneInput?.addEventListener('blur', clearValidPhoneError);
   } else if (step === 2) {
     const mode = draft.mode || 'pickup';
     panel.innerHTML = `
