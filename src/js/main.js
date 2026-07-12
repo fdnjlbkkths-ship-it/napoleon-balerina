@@ -3,7 +3,7 @@ import { initLoader, initScrollAnimations, initHeroParallax, initHeaderScroll } 
 import { initCart, initContactForm } from './ui.js';
 import { initCheckoutPage } from './checkout.js';
 import { consumeCartExpiredFlag } from './cart.js';
-import { getProducts, getShopInfo } from './data.js';
+import { getProducts, getShopInfo, getShopMapEmbedUrl } from './data.js';
 import { renderCategories, renderProductCards } from './menu.js';
 import { initMenuPage } from './menu.js';
 import { initProductPage } from './product.js';
@@ -132,8 +132,15 @@ function initContactsPage() {
     emailEl.textContent = shop.email;
     emailEl.href = `mailto:${shop.email}`;
   }
-  if (addressEl && shop.address) addressEl.textContent = shop.address;
+  if (addressEl) addressEl.textContent = shop.addressFull || shop.address || '';
   if (hoursEl && shop.hours) hoursEl.textContent = shop.hours;
+
+  const mapIframe = document.querySelector('.map-container iframe');
+  if (mapIframe) {
+    mapIframe.src = getShopMapEmbedUrl(shop);
+    const mapLabel = shop.addressFull || shop.address || '';
+    mapIframe.title = mapLabel ? `Карта — ${shop.name || ''}, ${mapLabel}` : 'Карта расположения кондитерской';
+  }
 
   const list = document.getElementById('contact-messengers-list');
   if (list) {

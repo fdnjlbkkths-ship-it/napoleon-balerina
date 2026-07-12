@@ -176,6 +176,8 @@ async function handleOrder(request, env) {
     );
   }
 
+  const fulfillment = clean(body.fulfillment, 20) || (body.address ? 'delivery' : 'pickup');
+
   const order = {
     id: makeOrderId(),
     createdAt: new Date().toISOString(),
@@ -185,7 +187,8 @@ async function handleOrder(request, env) {
     name: clean(body.name, 80),
     phone: phoneRaw,
     email,
-    address: clean(body.address, 200),
+    fulfillment,
+    address: fulfillment === 'delivery' ? clean(body.address, 200) : '',
     deliveryDate: clean(body.deliveryDate, 20),
     deliveryTime: clean(body.deliveryTime, 20),
     comment: clean(body.comment, 500),
@@ -1101,7 +1104,11 @@ function formatOrderHtml(order) {
   if (order.name) lines.push(`👤 ${escapeHtml(order.name)}`);
   if (order.phone) lines.push(`📞 ${escapeHtml(order.phone)}`);
   if (order.email) lines.push(`✉️ ${escapeHtml(order.email)}`);
-  if (order.address) lines.push(`📍 ${escapeHtml(order.address)}`);
+  if (order.fulfillment === 'delivery' && order.address) {
+    lines.push(`📍 ${escapeHtml(order.address)}`);
+  } else if (order.fulfillment === 'pickup' || !order.address) {
+    lines.push('🏪 Самовывоз');
+  }
   if (order.deliveryDate || order.deliveryTime) {
     lines.push(`📅 ${escapeHtml(formatDateTime(order.deliveryDate, order.deliveryTime))}`);
   }

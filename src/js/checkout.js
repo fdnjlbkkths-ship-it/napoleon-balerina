@@ -96,10 +96,9 @@ function readFormExtras() {
     document.querySelector('input[name="fulfillment"]:checked')?.value ||
     draft.mode ||
     'pickup';
-  const shop = getShopInfo();
-  let address = addressEl ? getAddressValue(addressEl) : draft.address || '';
-  if (mode === 'pickup') {
-    address = `Самовывоз: ${shop.address || 'г. Чебоксары, ул. Лесная 7.'}`;
+  let address = '';
+  if (mode === 'delivery') {
+    address = addressEl ? getAddressValue(addressEl) : draft.address || '';
   }
 
   return {
@@ -107,6 +106,7 @@ function readFormExtras() {
     phone: phoneEl ? getPhoneValue(phoneEl) : draft.phone || '',
     email: isValidEmail(email) ? email : '',
     emailToken: '',
+    mode,
     address,
     deliveryDate: date,
     deliveryTime: time,
@@ -117,16 +117,35 @@ function readFormExtras() {
 }
 
 function persistVisibleFields() {
-  const extras = readFormExtras();
+  const draft = loadDraft();
+  const mode =
+    document.querySelector('input[name="fulfillment"]:checked')?.value || draft.mode || 'pickup';
+  const addressEl = document.getElementById('checkout-address');
+  const street = addressEl?.querySelector('[data-address-street]')?.value?.trim() || '';
+  const house = addressEl?.querySelector('[data-address-house]')?.value?.trim() || '';
+  const address = mode === 'delivery' && addressEl ? getAddressValue(addressEl) : '';
+
   saveDraft({
-    name: extras.name,
-    phone: extras.phone,
-    email: document.getElementById('checkout-email')?.value?.trim() || extras.email,
-    address: extras.address,
-    deliveryDate: extras.deliveryDate,
-    deliveryTime: extras.deliveryTime,
-    comment: extras.comment,
-    mode: document.querySelector('input[name="fulfillment"]:checked')?.value || loadDraft().mode || 'pickup',
+    name: (document.getElementById('checkout-name')?.value || draft.name || '').trim(),
+    phone: document.getElementById('checkout-phone')
+      ? getPhoneValue(document.getElementById('checkout-phone'))
+      : draft.phone || '',
+    email: document.getElementById('checkout-email')?.value?.trim() || draft.email || '',
+    address,
+    addressStreet: mode === 'delivery' ? street : draft.addressStreet || '',
+    addressHouse: mode === 'delivery' ? house : draft.addressHouse || '',
+    deliveryDate:
+      document.getElementById('checkout-date')?.value ||
+      deliveryPickersApi?.getValues?.().date ||
+      draft.deliveryDate ||
+      '',
+    deliveryTime:
+      document.getElementById('checkout-time')?.value ||
+      deliveryPickersApi?.getValues?.().time ||
+      draft.deliveryTime ||
+      '',
+    comment: (document.getElementById('checkout-comment')?.value || draft.comment || '').trim(),
+    mode,
   });
 }
 
@@ -295,13 +314,13 @@ function renderStepPanel() {
     const mode = draft.mode || 'pickup';
     panel.innerHTML = `
       <h1 class="checkout-panel__title">Получение</h1>
-      <p class="checkout-panel__lead">Самовывоз с ул. Лесная 7 или доставка по Чебоксарам. Учитываем ~12 часов на приготовление.</p>
+      <p class="checkout-panel__lead">Самовывоз по адресу ${escapeHtml(shop.address || 'Лесная улица, 7')} или доставка по Чебоксарам. Учитываем ~12 часов на приготовление.</p>
       <div class="checkout-fulfillment" role="radiogroup" aria-label="Способ получения">
         <label class="checkout-fulfillment__option">
           <input type="radio" name="fulfillment" value="pickup" ${mode === 'pickup' ? 'checked' : ''}>
           <span>
             <strong>Самовывоз</strong>
-            <small>${escapeHtml(shop.address || 'г. Чебоксары, ул. Лесная 7.')}</small>
+            <small>${escapeHtml(shop.address || 'Лесная улица, 7')}</small>
           </span>
         </label>
         <label class="checkout-fulfillment__option">
@@ -312,7 +331,11 @@ function renderStepPanel() {
           </span>
         </label>
       </div>
-      <div class="checkout-fields" data-delivery-address ${mode === 'delivery' ? '' : 'hidden'}>
+      <div
+        class="checkout-delivery-address${mode === 'delivery' ? ' is-visible' : ''}"
+        data-delivery-address
+        aria-hidden="${mode === 'delivery' ? 'false' : 'true'}"
+      >
         <div class="form-group">
           <label>Адрес доставки</label>
           <div id="checkout-address" class="address-field">
@@ -322,12 +345,12 @@ function renderStepPanel() {
             </div>
             <div class="address-field__row autocomplete-wrap">
               <span class="address-field__label">Улица</span>
-              <input type="text" data-address-street placeholder="Начните вводить улицу..." autocomplete="off" value="">
+              <input type="text" data-address-street placeholder="Начните вводить улицу..." autocomplete="off" value="${escapeAttr(draft.addressStreet || '')}">
               <ul class="autocomplete" data-address-suggestions></ul>
             </div>
             <div class="address-field__row">
               <span class="address-field__label">Дом</span>
-              <input type="text" data-address-house placeholder="д. 10, кв. 5" value="">
+              <input type="text" data-address-house placeholder="д. 10, кв. 5" value="${escapeAttr(draft.addressHouse || '')}">
             </div>
           </div>
         </div>
@@ -351,23 +374,20 @@ function renderStepPanel() {
     deliveryPickersApi = initDeliveryPickers(document.getElementById('delivery-pickers'));
     initAddressAutocomplete(document.getElementById('checkout-address'));
 
-    // Restore address from draft if possible (street/house free text in full address)
-    if (draft.address) {
-      const street = document.querySelector('[data-address-street]');
-      const house = document.querySelector('[data-address-house]');
-      // draft.address like "Чебоксары, ул. X, д. Y" — leave street empty if unclear; user can re-enter
-      if (street && !street.value) street.placeholder = draft.address;
-    }
-
     const syncMode = () => {
       const m = document.querySelector('input[name="fulfillment"]:checked')?.value || 'pickup';
       const box = document.querySelector('[data-delivery-address]');
-      if (box) box.hidden = m !== 'delivery';
+      if (box) {
+        const isDelivery = m === 'delivery';
+        box.classList.toggle('is-visible', isDelivery);
+        box.setAttribute('aria-hidden', isDelivery ? 'false' : 'true');
+      }
       saveDraft({ mode: m });
     };
     document.querySelectorAll('input[name="fulfillment"]').forEach((el) => {
       el.addEventListener('change', syncMode);
     });
+    syncMode();
   } else if (step === 3) {
     const extras = { ...draft, ...readFormExtras() };
     const sbpReady = isSbpLinkConfigured();

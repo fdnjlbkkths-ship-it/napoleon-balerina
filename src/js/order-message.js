@@ -30,10 +30,17 @@ export function buildOrderMessage(cart, extras = {}) {
   lines.push(`💳 ${extras.paymentStatus || SBP_PAYMENT.paymentLine}`);
   lines.push('');
 
+  const mode = extras.mode || 'pickup';
+
   if (extras.name?.trim()) lines.push(`👤 Имя: ${extras.name.trim()}`);
   if (extras.phone?.trim()) lines.push(`📞 Телефон: ${extras.phone.trim()}`);
   if (extras.email?.trim()) lines.push(`✉️ Email: ${extras.email.trim()}`);
-  if (extras.address?.trim()) lines.push(`📍 Адрес: ${extras.address.trim()}`);
+  if (mode === 'delivery' && extras.address?.trim()) {
+    lines.push(`📍 Адрес доставки: ${extras.address.trim()}`);
+  } else if (mode === 'pickup') {
+    const pickupPoint = shop.address?.trim();
+    lines.push(`🏪 Самовывоз${pickupPoint ? `: ${pickupPoint}` : ''}`);
+  }
   if (extras.deliveryDate?.trim()) {
     lines.push(`📅 Дата доставки: ${formatDeliveryDate(extras.deliveryDate.trim())}`);
   }
@@ -47,6 +54,7 @@ export function buildOrderMessage(cart, extras = {}) {
     extras.phone ||
     extras.email ||
     extras.address ||
+    mode === 'pickup' ||
     extras.deliveryDate ||
     extras.deliveryTime ||
     extras.comment

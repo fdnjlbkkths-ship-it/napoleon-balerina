@@ -81,6 +81,15 @@ export function getShopInfo() {
   return data.shop;
 }
 
+/** OpenStreetMap embed URL for the shop pickup point (coordinates not shown in UI). */
+export function getShopMapEmbedUrl(shop = data.shop) {
+  const lat = Number(shop?.map?.lat) || 56.120929;
+  const lng = Number(shop?.map?.lng) || 47.247018;
+  const delta = 0.02;
+  const bbox = `${lng - delta}%2C${lat - delta}%2C${lng + delta}%2C${lat + delta}`;
+  return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat}%2C${lng}`;
+}
+
 /** Shared carousel settings: speed + where autoplay is enabled. */
 export function getCarouselSettings() {
   const shop = data.shop || {};
