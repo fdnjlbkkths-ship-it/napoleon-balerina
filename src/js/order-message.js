@@ -15,6 +15,9 @@ export function buildOrderMessage(cart, extras = {}) {
   const lines = [];
 
   lines.push(`🍰 *ЗАКАЗ — ${shop.name}*`);
+  if (extras.orderId) {
+    lines.push(`🧾 Номер: ${extras.orderId}`);
+  }
   lines.push('');
   lines.push('📋 *Ваш заказ:*');
   lines.push('');

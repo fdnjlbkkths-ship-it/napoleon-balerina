@@ -450,6 +450,31 @@
     }
   }
 
+  &__note {
+    margin: 0 0 1.1rem;
+    padding: 0.75rem 0.9rem;
+    font-size: 0.9375rem;
+    line-height: 1.45;
+    color: $color-chocolate;
+    background: rgba($color-blush, 0.45);
+    border-radius: $radius-sm;
+  }
+
+  &__confirm {
+    margin: 0 0 1.15rem;
+
+    .field-hint {
+      margin-top: 0.55rem;
+    }
+  }
+
+  &__tg-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
   &__contacts {
     display: flex;
     flex-wrap: wrap;

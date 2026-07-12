@@ -21,6 +21,23 @@ function normalizeUsername(username) {
 }
 
 /**
+ * Deep link в личный чат магазина в Telegram (с опциональным текстом заказа).
+ * @param {string} [message]
+ * @returns {string}
+ */
+export function getTelegramChatUrl(message = '') {
+  const shop = getShopInfo();
+  const tgUser = shop.messengers?.telegram?.username
+    ? normalizeUsername(shop.messengers.telegram.username)
+    : '';
+  if (!tgUser) return '';
+  if (message) {
+    return `https://t.me/${tgUser}?text=${encodeURIComponent(message)}`;
+  }
+  return `https://t.me/${tgUser}`;
+}
+
+/**
  * @param {string} message — текст заказа для deep-link
  * @param {{ forCheckout?: boolean }} [options]
  *   forCheckout: true — Telegram через бота (если настроен API), иначе личный чат
@@ -46,23 +63,24 @@ export function getMessengerLinks(message, options = {}) {
     ? normalizeUsername(messengers.telegram.username)
     : '';
   const orderApiUrl = getOrderApiUrl();
+  const tgChatUrl = getTelegramChatUrl(forCheckout ? message : '');
 
   if (forCheckout && orderApiUrl) {
     links.telegram = {
       id: 'telegram',
       label: messengers.telegram?.label || 'Telegram',
-      url: '#',
+      // Личный чат с текстом — для подтверждения клиентом; заказ уже уходит боту через API
+      url: tgChatUrl || '#',
       viaBot: true,
       orderApiUrl,
-      hint: 'Заказ уйдёт боту в Telegram',
+      chatUrl: tgChatUrl,
+      hint: tgUser ? `@${tgUser}` : 'Заказ уйдёт боту в Telegram',
     };
   } else if (tgUser) {
     links.telegram = {
       id: 'telegram',
       label: messengers.telegram.label || 'Telegram',
-      url: forCheckout
-        ? `https://t.me/${tgUser}?text=${encoded}`
-        : `https://t.me/${tgUser}`,
+      url: forCheckout ? tgChatUrl : `https://t.me/${tgUser}`,
       hint: `@${tgUser}`,
     };
   }
