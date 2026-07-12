@@ -42,6 +42,7 @@ export async function submitOrderToBot(apiUrl, cart, extras = {}) {
     shopName: shop.name || '',
     paymentMethod: extras.paymentMethod || 'sbp',
     paymentStatus: extras.paymentStatus || 'Оплата: ожидает (СБП)',
+    confirmChannel: extras.confirmChannel || 'phone',
     // anti-bot
     website: extras.website || '',
     startedAt: extras.startedAt || 0,

@@ -8,7 +8,7 @@ import {
 } from './cart.js';
 import { getShopInfo } from './data.js';
 import { buildOrderMessagePlain } from './order-message.js';
-import { getMessengerList, MESSENGER_ICONS } from './messengers.js';
+import { getMessengerLinks, MESSENGER_ICONS } from './messengers.js';
 import { submitOrderToBot, OrderChallengeRequiredError, getOrderApiUrl } from './order-api.js';
 import { initPhoneMask, getPhoneValue, isPhoneComplete } from './phone-mask.js';
 import { isValidEmail, normalizeEmail } from './email-otp.js';
@@ -34,6 +34,13 @@ const STEPS = [
   { id: 3, label: 'Оплата' },
   { id: 4, label: 'Готово' },
 ];
+
+const CONFIRM_ICONS = {
+  sbp: `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect width="40" height="40" rx="10" fill="#5C4033"/><path fill="#F5E6D3" d="M21.8 9.5 12 21.2h7.2l-1 9.3L28 18.8h-7.2l1-9.3z"/></svg>`,
+  phone: `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect width="40" height="40" rx="10" fill="#E8D5C4"/><path fill="#5C4033" d="M14.2 11.8c.4-1 1.4-1.6 2.5-1.5l3 .3c.9.1 1.6.8 1.8 1.7l.7 3.1c.2.8-.1 1.6-.7 2.1l-1.5 1.2a14.6 14.6 0 0 0 6.2 6.2l1.2-1.5c.5-.6 1.3-.9 2.1-.7l3.1.7c.9.2 1.6.9 1.7 1.8l.3 3c.1 1.1-.5 2.1-1.5 2.5-2 .8-8.4 1-13.7-4.3S13.4 13.8 14.2 11.8z"/></svg>`,
+  telegram: MESSENGER_ICONS.telegram,
+  max: MESSENGER_ICONS.max,
+};
 
 let step = 1;
 let orderResult = null; // { orderId, total, items }
@@ -112,8 +119,15 @@ function readFormExtras() {
     deliveryDate: date,
     deliveryTime: time,
     comment: (document.getElementById('checkout-comment')?.value || draft.comment || '').trim(),
-    paymentMethod: 'sbp',
+    paymentMethod:
+      document.querySelector('input[name="payment"]:checked')?.value ||
+      draft.paymentMethod ||
+      'sbp',
     paymentStatus: SBP_PAYMENT.paymentLine,
+    confirmChannel:
+      document.querySelector('input[name="confirm-channel"]:checked')?.value ||
+      draft.confirmChannel ||
+      'phone',
   };
 }
 
@@ -148,6 +162,14 @@ function persistVisibleFields() {
       '',
     comment: (document.getElementById('checkout-comment')?.value || draft.comment || '').trim(),
     mode,
+    paymentMethod:
+      document.querySelector('input[name="payment"]:checked')?.value ||
+      draft.paymentMethod ||
+      'sbp',
+    confirmChannel:
+      document.querySelector('input[name="confirm-channel"]:checked')?.value ||
+      draft.confirmChannel ||
+      'phone',
   });
 }
 
@@ -405,40 +427,82 @@ function renderStepPanel() {
     });
     syncMode();
   } else if (step === 3) {
-    const extras = { ...draft, ...readFormExtras() };
+    const channel = draft.confirmChannel || 'phone';
     const sbpReady = isSbpLinkConfigured();
     panel.innerHTML = `
       <h1 class="checkout-panel__title">Оплата</h1>
-      <p class="checkout-panel__lead">Оплата через СБП после оформления. В Telegram уйдёт статус «${escapeHtml(SBP_PAYMENT.paymentLine)}».</p>
-      <div class="checkout-pay-card">
-        <div class="checkout-pay-card__row"><span>Способ</span><strong>СБП</strong></div>
-        <div class="checkout-pay-card__row"><span>Сумма</span><strong>${escapeHtml(formatPrice(getCartTotal()))}</strong></div>
-        <p class="checkout-pay-card__note">${escapeHtml(SBP_PAYMENT.qrNote)}</p>
-        <p class="checkout-pay-card__hint">${escapeHtml(SBP_PAYMENT.confirmHint)}</p>
-        ${
-          sbpReady
-            ? ''
-            : '<p class="checkout-pay-card__setup">Ссылка СБП пока не настроена — после заказа кнопка оплаты будет доступна, когда вы подставите URL в sbp-payment.js.</p>'
-        }
+      <p class="checkout-panel__lead">Выберите способ оплаты и как нам подтвердить заказ. После оформления — оплата по СБП.</p>
+
+      <p class="checkout-panel__sub">Способ оплаты</p>
+      <div class="checkout-choice" role="radiogroup" aria-label="Способ оплаты">
+        <label class="checkout-choice__option">
+          <input type="radio" name="payment" value="sbp" checked>
+          <span class="checkout-choice__icon" aria-hidden="true">${CONFIRM_ICONS.sbp}</span>
+          <span class="checkout-choice__body">
+            <strong>Оплата по СБП</strong>
+            <small>Перевод через Систему быстрых платежей после оформления. Сумма: ${escapeHtml(formatPrice(getCartTotal()))}. Чек сформируется в «Мой налог».</small>
+          </span>
+        </label>
       </div>
-      <div class="checkout-fields">
-        <p class="checkout-panel__sub">Отправить заказ</p>
-        <div class="messenger-buttons" id="checkout-messengers"></div>
-        <div class="cart-checkout__challenge" id="order-challenge" hidden>
-          <p class="cart-checkout__challenge-text">
-            Подтвердите, что вы человек — затем снова нажмите Telegram.
-          </p>
-          <div id="recaptcha-v2-container" class="cart-checkout__recaptcha"></div>
-        </div>
-        <div class="antibot-hp" aria-hidden="true">
-          <label for="checkout-website">Сайт</label>
-          <input type="text" id="checkout-website" name="website" data-antibot-honeypot tabindex="-1" autocomplete="off">
-        </div>
+      ${
+        sbpReady
+          ? `<p class="checkout-choice__hint">${escapeHtml(SBP_PAYMENT.qrNote)}</p>`
+          : '<p class="checkout-pay-card__setup">Ссылка СБП пока не настроена — после заказа кнопка оплаты появится, когда подставите URL в sbp-payment.js.</p>'
+      }
+
+      <p class="checkout-panel__sub">Подтверждение заказа</p>
+      <div class="checkout-choice" role="radiogroup" aria-label="Подтверждение заказа">
+        <label class="checkout-choice__option">
+          <input type="radio" name="confirm-channel" value="phone" ${channel === 'phone' ? 'checked' : ''}>
+          <span class="checkout-choice__icon" aria-hidden="true">${CONFIRM_ICONS.phone}</span>
+          <span class="checkout-choice__body">
+            <strong>Звонок по телефону</strong>
+            <small>Мы перезвоним на номер, указанный в контактах</small>
+          </span>
+        </label>
+        <label class="checkout-choice__option">
+          <input type="radio" name="confirm-channel" value="telegram" ${channel === 'telegram' ? 'checked' : ''}>
+          <span class="checkout-choice__icon" aria-hidden="true">${CONFIRM_ICONS.telegram}</span>
+          <span class="checkout-choice__body">
+            <strong>Telegram</strong>
+            <small>Подтвердим заказ в Telegram</small>
+          </span>
+        </label>
+        <label class="checkout-choice__option">
+          <input type="radio" name="confirm-channel" value="max" ${channel === 'max' ? 'checked' : ''}>
+          <span class="checkout-choice__icon" aria-hidden="true">${CONFIRM_ICONS.max}</span>
+          <span class="checkout-choice__body">
+            <strong>Мессенджер Max</strong>
+            <small>Свяжемся с вами в MAX</small>
+          </span>
+        </label>
       </div>
+
+      <p class="checkout-consent">
+        Нажимая на кнопку «Оформить заказ», я принимаю условия
+        <a href="#">публичной оферты</a>, подтверждаю ознакомление с
+        <a href="privacy.html">политикой конфиденциальности</a>
+        и даю согласие на обработку персональных данных.
+      </p>
+
+      <div class="cart-checkout__challenge" id="order-challenge" hidden>
+        <p class="cart-checkout__challenge-text">
+          Подтвердите, что вы человек — затем снова нажмите «Оформить заказ».
+        </p>
+        <div id="recaptcha-v2-container" class="cart-checkout__recaptcha"></div>
+      </div>
+      <div class="antibot-hp" aria-hidden="true">
+        <label for="checkout-website">Сайт</label>
+        <input type="text" id="checkout-website" name="website" data-antibot-honeypot tabindex="-1" autocomplete="off">
+      </div>
+
       <div class="checkout-actions">
         <button type="button" class="btn btn--ghost" data-checkout-back>← Назад</button>
+        <button type="button" class="btn btn--primary" data-checkout-submit>Оформить заказ</button>
       </div>`;
-    bindMessengers(extras);
+
+    bindConfirmChoices();
+    panel.querySelector('[data-checkout-submit]')?.addEventListener('click', onSubmitOrder);
   } else {
     const shop = getShopInfo();
     const phone = shop.phone || '';
@@ -482,88 +546,76 @@ function renderStepPanel() {
   panel.querySelector('[data-checkout-back]')?.addEventListener('click', onBack);
 }
 
-function bindMessengers(extrasSeed) {
-  const container = document.getElementById('checkout-messengers');
-  if (!container) return;
+function bindConfirmChoices() {
+  document.querySelectorAll('input[name="confirm-channel"], input[name="payment"]').forEach((el) => {
+    el.addEventListener('change', () => persistVisibleFields());
+  });
+}
 
-  const extras = { ...extrasSeed, ...readFormExtras() };
-  const message = buildOrderMessagePlain(getCart(), extras);
-  const messengers = getMessengerList(message, { forCheckout: true });
-
-  container.innerHTML = messengers
-    .map(
-      (m) => `
-    <a
-      href="${m.viaBot ? '#' : m.url}"
-      class="messenger-btn messenger-btn--${m.id}"
-      data-messenger="${m.id}"
-      ${m.viaBot ? '' : 'target="_blank" rel="noopener noreferrer"'}
-      aria-label="${m.label}"
-      title="${m.viaBot ? 'Отправить заказ в Telegram' : m.label}"
-    >
-      <span class="messenger-btn__icon">${MESSENGER_ICONS[m.id]}</span>
-      <span class="messenger-btn__text">${escapeHtml(m.label)}</span>
-    </a>`
-    )
-    .join('');
-
-  if (!messengers.length) {
-    container.innerHTML =
-      '<p class="field-hint">Мессенджеры не настроены. Проверьте данные магазина.</p>';
+async function onSubmitOrder(e) {
+  const btn = e?.currentTarget;
+  persistVisibleFields();
+  const extras = readFormExtras();
+  if (!extras.confirmChannel) {
+    window.alert('Выберите способ подтверждения заказа.');
+    return;
   }
 
-  container.querySelectorAll('.messenger-btn').forEach((btn) => {
-    btn.addEventListener('click', async (e) => {
-      const id = btn.dataset.messenger;
-      const messenger = messengers.find((m) => m.id === id);
-      if (!messenger) return;
-      persistVisibleFields();
-      const extrasNow = readFormExtras();
-
-      if (messenger.viaBot) {
-        e.preventDefault();
-        btn.classList.add('is-loading');
-        try {
-          const cartSnapshot = getCart();
-          const total = getCartTotal(cartSnapshot);
-          const data = await submitBotOrderWithAntiBot(messenger.orderApiUrl, extrasNow);
-          finishOrder({ orderId: data?.orderId || '', total });
-        } catch (err) {
-          console.error(err);
-          if (err instanceof OrderChallengeRequiredError) {
-            await showOrderChallenge();
-            window.alert('Пройдите проверку ниже и снова нажмите Telegram.');
-          } else {
-            window.alert(
-              err?.message ||
-                'Не удалось отправить заказ. Проверьте интернет или оформите через WhatsApp / MAX.'
-            );
-          }
-        } finally {
-          btn.classList.remove('is-loading');
-        }
-        return;
-      }
-
-      if (messenger.copyMessage) {
-        e.preventDefault();
-        try {
-          await navigator.clipboard.writeText(buildOrderMessagePlain(getCart(), extrasNow));
-        } catch {
-          /* ignore */
-        }
-        window.open(messenger.url, '_blank', 'noopener,noreferrer');
-      }
-
-      const total = getCartTotal(getCart());
-      finishOrder({ orderId: '', total });
-    });
-  });
-
-  // Primary CTA if Telegram bot configured
   const apiUrl = getOrderApiUrl();
-  if (apiUrl && !container.querySelector('[data-messenger="telegram"]')) {
-    /* bot already in list when configured */
+  const cartSnapshot = getCart();
+  const total = getCartTotal(cartSnapshot);
+
+  btn?.classList.add('is-loading');
+  btn?.setAttribute('disabled', 'true');
+
+  try {
+    if (apiUrl) {
+      const data = await submitBotOrderWithAntiBot(apiUrl, extras);
+      finishOrder({ orderId: data?.orderId || '', total });
+      return;
+    }
+
+    // Fallback without order API: open preferred messenger with order text
+    const message = buildOrderMessagePlain(cartSnapshot, extras);
+    const links = getMessengerLinks(message, { forCheckout: true });
+    const channel = extras.confirmChannel;
+
+    if (channel === 'telegram' && links.telegram && !links.telegram.viaBot) {
+      window.open(links.telegram.url, '_blank', 'noopener,noreferrer');
+    } else if (channel === 'max' && links.max) {
+      try {
+        await navigator.clipboard.writeText(message);
+      } catch {
+        /* ignore */
+      }
+      window.open(links.max.url, '_blank', 'noopener,noreferrer');
+    } else if (channel === 'phone') {
+      const shop = getShopInfo();
+      if (shop.phone) {
+        window.location.href = `tel:${String(shop.phone).replace(/\D/g, '')}`;
+      }
+    } else {
+      window.alert(
+        'API заказов не настроен. Напишите нам в Telegram или MAX и отправьте текст заказа вручную.'
+      );
+      return;
+    }
+
+    finishOrder({ orderId: '', total });
+  } catch (err) {
+    console.error(err);
+    if (err instanceof OrderChallengeRequiredError) {
+      await showOrderChallenge();
+      window.alert('Пройдите проверку ниже и снова нажмите «Оформить заказ».');
+    } else {
+      window.alert(
+        err?.message ||
+          'Не удалось отправить заказ. Проверьте интернет и попробуйте ещё раз.'
+      );
+    }
+  } finally {
+    btn?.classList.remove('is-loading');
+    btn?.removeAttribute('disabled');
   }
 }
 
@@ -596,7 +648,7 @@ async function showOrderChallenge() {
   wrap.hidden = false;
   if (!isRecaptchaV2Configured()) {
     wrap.querySelector('.cart-checkout__challenge-text').textContent =
-      'Подождите несколько секунд, подвигайте мышью и попробуйте снова. Либо оформите через WhatsApp / MAX.';
+      'Подождите несколько секунд, подвигайте мышью и попробуйте снова.';
     return;
   }
   await mountRecaptchaV2(box);

@@ -28,6 +28,14 @@ export function buildOrderMessage(cart, extras = {}) {
   lines.push('─────────────────');
   lines.push(`💰 *Итого: ${formatPrice(total)}*`);
   lines.push(`💳 ${extras.paymentStatus || SBP_PAYMENT.paymentLine}`);
+  if (extras.confirmChannel) {
+    const labels = {
+      phone: 'Звонок по телефону',
+      telegram: 'Telegram',
+      max: 'Мессенджер Max',
+    };
+    lines.push(`🔔 Подтверждение: ${labels[extras.confirmChannel] || extras.confirmChannel}`);
+  }
   lines.push('');
 
   const mode = extras.mode || 'pickup';

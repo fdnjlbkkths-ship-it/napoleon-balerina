@@ -196,6 +196,7 @@ async function handleOrder(request, env) {
     shopName: clean(body.shopName, 80) || 'Наполеон и Балерина',
     paymentMethod: clean(body.paymentMethod, 20) || 'sbp',
     paymentStatus: clean(body.paymentStatus, 80) || 'Оплата: ожидает (СБП)',
+    confirmChannel: clean(body.confirmChannel, 20) || 'phone',
   };
 
   await saveOrder(env, order);
@@ -1102,6 +1103,15 @@ function formatOrderHtml(order) {
   lines.push('');
   lines.push(`💰 <b>Итого: ${formatMoney(order.total)}</b>`);
   lines.push(`💳 ${escapeHtml(order.paymentStatus || 'Оплата: ожидает (СБП)')}`);
+  if (order.confirmChannel) {
+    const labels = {
+      phone: 'Звонок по телефону',
+      telegram: 'Telegram',
+      max: 'Мессенджер Max',
+    };
+    const label = labels[order.confirmChannel] || order.confirmChannel;
+    lines.push(`🔔 Подтверждение: ${escapeHtml(label)}`);
+  }
   lines.push('');
 
   if (order.lastName) lines.push(`👤 Фамилия: ${escapeHtml(order.lastName)}`);
