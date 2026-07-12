@@ -1,6 +1,7 @@
 name = "napoleon-order-bot"
 main = "src/index.js"
 compatibility_date = "2024-11-01"
+account_id = "749a28cd633e827c5026389b50c8e129"
 
 [[kv_namespaces]]
 binding = "ORDERS"
