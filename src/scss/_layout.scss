@@ -1799,43 +1799,6 @@
   }
 }
 
-// Reviews
-.reviews {
-  background: $color-blush;
-
-  &__grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-
-    @media (min-width: $breakpoint-md) {
-      grid-template-columns: repeat(3, 1fr);
-    }
-  }
-}
-
-.review-card {
-  background: $color-white;
-  padding: 2rem;
-  border-radius: $radius-md;
-  box-shadow: $shadow-sm;
-
-  &__stars {
-    margin-bottom: 1rem;
-  }
-
-  &__text {
-    font-style: italic;
-    margin-bottom: 1.25rem;
-    line-height: 1.7;
-  }
-
-  &__author {
-    font-weight: 600;
-    color: $color-chocolate;
-  }
-}
-
 // About page
 .about-hero {
   padding-top: calc($header-height + 3rem);

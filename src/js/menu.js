@@ -4,7 +4,6 @@ import {
   getProducts,
   getProductCategoryLabel,
   searchProducts,
-  getReviews,
 } from './data.js';
 import { addToCart, formatPrice } from './cart.js';
 import { animateElements } from './animations.js';
@@ -420,21 +419,6 @@ export function renderCategories(container) {
         </div>
       </a>
     </div>`
-    )
-    .join('');
-}
-
-export function renderReviews(container) {
-  if (!container) return;
-  const reviews = getReviews();
-  container.innerHTML = reviews
-    .map(
-      (r) => `
-      <div class="review-card" data-animate>
-        <div class="stars review-card__stars">${'★'.repeat(r.rating)}</div>
-        <p class="review-card__text">«${r.text}»</p>
-        <p class="review-card__author">— ${r.name}</p>
-      </div>`
     )
     .join('');
 }

@@ -2,7 +2,7 @@ import '../scss/main.scss';
 import { initLoader, initScrollAnimations, initHeroParallax, initHeaderScroll } from './animations.js';
 import { initCart, initContactForm } from './ui.js';
 import { getProducts, getShopInfo } from './data.js';
-import { renderCategories, renderReviews, renderProductCards } from './menu.js';
+import { renderCategories, renderProductCards } from './menu.js';
 import { initMenuPage } from './menu.js';
 import { initProductPage } from './product.js';
 import {
@@ -107,13 +107,11 @@ function initShopContent() {
 
 function initHomePage() {
   const categoriesEl = document.getElementById('categories-grid');
-  const reviewsEl = document.getElementById('reviews-grid');
   const featuredEl = document.getElementById('featured-grid');
 
   if (categoriesEl) {
     renderCategories(categoriesEl);
   }
-  if (reviewsEl) renderReviews(reviewsEl);
   if (featuredEl) renderProductCards(featuredEl, getProducts().slice(0, 4));
 }
 

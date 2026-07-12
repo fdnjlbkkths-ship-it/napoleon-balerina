@@ -77,10 +77,6 @@ export function searchProducts(query) {
   });
 }
 
-export function getReviews() {
-  return data.reviews;
-}
-
 export function getShopInfo() {
   return data.shop;
 }
