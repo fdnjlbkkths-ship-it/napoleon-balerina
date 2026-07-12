@@ -68,7 +68,10 @@ export async function submitOrderToBot(apiUrl, cart, extras = {}) {
 
   if (!res.ok) {
     const msg = data?.error || `Ошибка ${res.status}`;
-    throw new Error(msg);
+    const err = new Error(msg);
+    err.status = res.status;
+    err.error = data?.error || '';
+    throw err;
   }
 
   return data;

@@ -2383,6 +2383,31 @@
   color: $color-text-light;
 }
 
+.field-error {
+  display: block;
+  margin-top: 0.4rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #b42318;
+}
+
+.required-mark {
+  color: $color-caramel;
+  font-weight: 700;
+}
+
+.form-group.is-invalid {
+  input.is-invalid,
+  input[aria-invalid='true'] {
+    border-color: #b42318;
+    box-shadow: 0 0 0 3px rgba(180, 35, 24, 0.12);
+  }
+
+  .field-hint {
+    margin-bottom: 0.25rem;
+  }
+}
+
 .checkout-datetime {
   display: grid;
   grid-template-columns: 1fr;

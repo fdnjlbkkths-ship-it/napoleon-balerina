@@ -12,7 +12,7 @@ import { animateCartBadge } from './animations.js';
 import { buildOrderMessagePlain } from './order-message.js';
 import { getMessengerList, MESSENGER_ICONS } from './messengers.js';
 import { submitOrderToBot, OrderChallengeRequiredError } from './order-api.js';
-import { initPhoneMask, getPhoneValue } from './phone-mask.js';
+import { initPhoneMask, getPhoneValue, isPhoneComplete } from './phone-mask.js';
 import { initAddressAutocomplete, getAddressValue } from './address-autocomplete.js';
 import { initDeliveryPickers, renderDeliveryPickersHtml } from './datetime-picker.js';
 import { lockBodyScroll, unlockBodyScroll } from './pointer.js';
@@ -223,10 +223,11 @@ function renderCheckoutView() {
           <label for="checkout-name">Ваше имя</label>
           <input type="text" id="checkout-name" placeholder="Как к вам обращаться?" value="${escapeAttr(extras.name)}">
         </div>
-        <div class="form-group">
-          <label for="checkout-phone">Телефон</label>
-          <input type="tel" id="checkout-phone" inputmode="numeric" autocomplete="tel" placeholder="+7 (9XX) XXX-XX-XX" value="${escapeAttr(extras.phone || '+7 (9')}">
-          <span class="field-hint">Формат уже с +7 (9 — просто допишите номер</span>
+        <div class="form-group" data-checkout-phone-group>
+          <label for="checkout-phone">Телефон <span class="required-mark" aria-hidden="true">*</span></label>
+          <input type="tel" id="checkout-phone" inputmode="numeric" autocomplete="tel" placeholder="+7 (9XX) XXX-XX-XX" value="${escapeAttr(extras.phone || '+7 (9')}" required aria-required="true" aria-describedby="checkout-phone-hint">
+          <span class="field-hint" id="checkout-phone-hint">Обязательно. Формат уже с +7 (9 — допишите номер полностью</span>
+          <span class="field-error" id="checkout-phone-error" hidden>Укажите полный номер телефона</span>
         </div>
         <div class="form-group">
           <label>Адрес доставки</label>
@@ -289,7 +290,10 @@ function renderCheckoutView() {
   updateCheckoutPreview();
 
   document.getElementById('checkout-name')?.addEventListener('input', updateCheckoutPreview);
-  document.getElementById('checkout-phone')?.addEventListener('input', updateCheckoutPreview);
+  document.getElementById('checkout-phone')?.addEventListener('input', () => {
+    clearCheckoutPhoneError();
+    updateCheckoutPreview();
+  });
   document.getElementById('checkout-comment')?.addEventListener('input', updateCheckoutPreview);
   document.getElementById('checkout-address')?.addEventListener('address-change', updateCheckoutPreview);
 
@@ -345,6 +349,11 @@ function updateCheckoutPreview() {
       const messenger = messengers.find((m) => m.id === id);
       if (!messenger) return;
 
+      if (!ensureCheckoutPhone()) {
+        e.preventDefault();
+        return;
+      }
+
       if (messenger.viaBot) {
         e.preventDefault();
         btn.classList.add('is-loading');
@@ -360,6 +369,8 @@ function updateCheckoutPreview() {
             window.alert(
               'Пройдите проверку ниже и снова нажмите кнопку Telegram.'
             );
+          } else if (err?.status === 400 && /phone/i.test(String(err?.message || err?.error || ''))) {
+            ensureCheckoutPhone();
           } else {
             window.alert(
               'Не удалось отправить заказ. Проверьте интернет или оформите через WhatsApp / MAX.'
@@ -388,6 +399,64 @@ function updateCheckoutPreview() {
       }, 400);
     });
   });
+}
+
+function clearCheckoutPhoneError() {
+  const group = document.querySelector('[data-checkout-phone-group]');
+  const input = document.getElementById('checkout-phone');
+  const error = document.getElementById('checkout-phone-error');
+  group?.classList.remove('is-invalid');
+  input?.classList.remove('is-invalid');
+  input?.removeAttribute('aria-invalid');
+  if (error) error.hidden = true;
+}
+
+/** Полный телефон обязателен. При ошибке — плавно к полю по центру. */
+function ensureCheckoutPhone() {
+  const input = document.getElementById('checkout-phone');
+  const group = document.querySelector('[data-checkout-phone-group]');
+  const error = document.getElementById('checkout-phone-error');
+  if (!input) return false;
+
+  if (isPhoneComplete(input)) {
+    clearCheckoutPhoneError();
+    return true;
+  }
+
+  group?.classList.add('is-invalid');
+  input.classList.add('is-invalid');
+  input.setAttribute('aria-invalid', 'true');
+  if (error) error.hidden = false;
+
+  const scroller = document.getElementById('cart-body');
+  const target = group || input;
+
+  requestAnimationFrame(() => {
+    if (scroller) {
+      const scrollerRect = scroller.getBoundingClientRect();
+      const targetRect = target.getBoundingClientRect();
+      const nextTop =
+        scroller.scrollTop +
+        (targetRect.top - scrollerRect.top) -
+        scrollerRect.height / 2 +
+        targetRect.height / 2;
+      scroller.scrollTo({ top: Math.max(0, nextTop), behavior: 'smooth' });
+    } else {
+      target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+    }
+
+    setTimeout(() => {
+      input.focus({ preventScroll: true });
+      const len = input.value.length;
+      try {
+        input.setSelectionRange(len, len);
+      } catch {
+        /* ignore */
+      }
+    }, 320);
+  });
+
+  return false;
 }
 
 async function submitBotOrderWithAntiBot(apiUrl) {

@@ -141,6 +141,12 @@ async function handleOrder(request, env) {
     return json({ error: 'Cart is empty' }, 400);
   }
 
+  const phoneRaw = clean(body.phone, 40);
+  const phoneDigits = String(phoneRaw).replace(/\D/g, '');
+  if (phoneDigits.length !== 11 || !/^7\d{10}$/.test(phoneDigits)) {
+    return json({ error: 'phone_required', message: 'Укажите полный номер телефона' }, 400);
+  }
+
   const antiBot = await evaluateAntiBot(body, env, ip);
   if (antiBot.action === 'reject') {
     return json({ error: antiBot.error || 'Forbidden' }, antiBot.status || 403);
@@ -163,7 +169,7 @@ async function handleOrder(request, env) {
     items: items.slice(0, 50).map(normalizeItem),
     total: Number(body.total) || calcTotal(items),
     name: clean(body.name, 80),
-    phone: clean(body.phone, 40),
+    phone: phoneRaw,
     address: clean(body.address, 200),
     deliveryDate: clean(body.deliveryDate, 20),
     deliveryTime: clean(body.deliveryTime, 20),
