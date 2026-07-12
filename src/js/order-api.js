@@ -1,8 +1,19 @@
 import { getCartTotal } from './cart.js';
 import { getShopInfo } from './data.js';
 
+export class OrderChallengeRequiredError extends Error {
+  constructor(message = 'Требуется проверка') {
+    super(message);
+    this.name = 'OrderChallengeRequiredError';
+    this.code = 'challenge_required';
+  }
+}
+
 /**
  * Отправка заказа на Cloudflare Worker → Telegram-бот.
+ * @param {string} apiUrl
+ * @param {Array} cart
+ * @param {object} extras — поля формы + anti-bot
  */
 export async function submitOrderToBot(apiUrl, cart, extras = {}) {
   if (!apiUrl) {
@@ -25,6 +36,13 @@ export async function submitOrderToBot(apiUrl, cart, extras = {}) {
     deliveryTime: extras.deliveryTime || '',
     comment: extras.comment || '',
     shopName: shop.name || '',
+    // anti-bot
+    website: extras.website || '',
+    startedAt: extras.startedAt || 0,
+    hasGestures: Boolean(extras.hasGestures),
+    gestureScore: Number(extras.gestureScore) || 0,
+    recaptchaV3Token: extras.recaptchaV3Token || '',
+    recaptchaV2Token: extras.recaptchaV2Token || '',
   };
 
   const headers = { 'Content-Type': 'application/json' };
@@ -42,6 +60,10 @@ export async function submitOrderToBot(apiUrl, cart, extras = {}) {
     data = await res.json();
   } catch {
     /* ignore */
+  }
+
+  if (data?.error === 'challenge_required' || res.status === 428) {
+    throw new OrderChallengeRequiredError(data?.message || 'Требуется проверка');
   }
 
   if (!res.ok) {

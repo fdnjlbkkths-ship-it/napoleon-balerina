@@ -12,3 +12,6 @@ preview_id = "8c46f0d8202e45bfbac3fe2b773651e4"
 #   npx wrangler secret put ADMIN_CHAT_ID
 #   npx wrangler secret put ORDER_SECRET   (опционально)
 #   npx wrangler secret put ALLOWED_ORIGINS  (опционально, через запятую)
+#   npx wrangler secret put RECAPTCHA_V3_SECRET
+#   npx wrangler secret put RECAPTCHA_V2_SECRET
+#   npx wrangler secret put RECAPTCHA_V3_MIN_SCORE  (опционально, по умолчанию 0.5)

@@ -11,12 +11,23 @@ import { getShopInfo } from './data.js';
 import { animateCartBadge } from './animations.js';
 import { buildOrderMessagePlain } from './order-message.js';
 import { getMessengerList, MESSENGER_ICONS } from './messengers.js';
-import { submitOrderToBot } from './order-api.js';
+import { submitOrderToBot, OrderChallengeRequiredError } from './order-api.js';
 import { initPhoneMask, getPhoneValue } from './phone-mask.js';
 import { initAddressAutocomplete, getAddressValue } from './address-autocomplete.js';
 import { initDeliveryPickers, renderDeliveryPickersHtml } from './datetime-picker.js';
 import { lockBodyScroll, unlockBodyScroll } from './pointer.js';
 import { closeAllDropdowns } from './navigation.js';
+import {
+  beginCheckoutSession,
+  endCheckoutSession,
+  getAntiBotSignals,
+  getRecaptchaV3Token,
+  mountRecaptchaV2,
+  getRecaptchaV2Response,
+  isRecaptchaConfigured,
+  isRecaptchaV2Configured,
+  ensureRecaptchaV3,
+} from './recaptcha.js';
 
 let cartModal;
 let cartOverlay;
@@ -55,6 +66,7 @@ function openCart() {
 }
 
 function closeCart() {
+  endCheckoutSession();
   cartView = 'items';
   cartModal?.classList.remove('active');
   cartOverlay?.classList.remove('active');
@@ -77,11 +89,16 @@ function showCheckoutView() {
   const cart = getCart();
   if (cart.length === 0) return;
   cartView = 'checkout';
+  beginCheckoutSession();
+  if (isRecaptchaConfigured()) {
+    ensureRecaptchaV3().catch(() => {});
+  }
   renderCheckoutView();
   updateCartUI();
 }
 
 function showItemsView() {
+  endCheckoutSession();
   cartView = 'items';
   renderCart();
   updateCartUI();
@@ -242,6 +259,24 @@ function renderCheckoutView() {
       <div class="cart-checkout__messengers">
         <p class="cart-checkout__messengers-title">Оформить заказ через</p>
         <div class="messenger-buttons" id="messenger-buttons"></div>
+        <div class="cart-checkout__challenge" id="order-challenge" hidden>
+          <p class="cart-checkout__challenge-text">
+            Обнаружена подозрительная активность. Подтвердите, что вы человек — затем снова нажмите Telegram.
+          </p>
+          <div id="recaptcha-v2-container" class="cart-checkout__recaptcha"></div>
+        </div>
+        <!-- honeypot: leave empty -->
+        <div class="antibot-hp" aria-hidden="true">
+          <label for="checkout-website">Сайт</label>
+          <input
+            type="text"
+            id="checkout-website"
+            name="website"
+            data-antibot-honeypot
+            tabindex="-1"
+            autocomplete="off"
+          >
+        </div>
       </div>
     </div>`;
 
@@ -314,19 +349,22 @@ function updateCheckoutPreview() {
         e.preventDefault();
         btn.classList.add('is-loading');
         try {
-          await submitOrderToBot(
-            messenger.orderApiUrl,
-            getCart(),
-            getCheckoutExtras()
-          );
+          await submitBotOrderWithAntiBot(messenger.orderApiUrl);
           clearCart();
           closeCart();
           window.alert('Заказ отправлен в Telegram. Мы скоро свяжемся с вами!');
         } catch (err) {
           console.error(err);
-          window.alert(
-            'Не удалось отправить заказ. Проверьте интернет или оформите через WhatsApp / MAX.'
-          );
+          if (err instanceof OrderChallengeRequiredError) {
+            await showOrderChallenge();
+            window.alert(
+              'Пройдите проверку ниже и снова нажмите кнопку Telegram.'
+            );
+          } else {
+            window.alert(
+              'Не удалось отправить заказ. Проверьте интернет или оформите через WhatsApp / MAX.'
+            );
+          }
         } finally {
           btn.classList.remove('is-loading');
         }
@@ -350,6 +388,46 @@ function updateCheckoutPreview() {
       }, 400);
     });
   });
+}
+
+async function submitBotOrderWithAntiBot(apiUrl) {
+  const signals = getAntiBotSignals();
+  let recaptchaV3Token = '';
+  if (isRecaptchaConfigured()) {
+    try {
+      recaptchaV3Token = await getRecaptchaV3Token('order');
+    } catch (err) {
+      console.warn('reCAPTCHA v3', err);
+    }
+  }
+
+  const v2Token = getRecaptchaV2Response();
+
+  return submitOrderToBot(apiUrl, getCart(), {
+    ...getCheckoutExtras(),
+    website: signals.honeypot,
+    startedAt: signals.startedAt,
+    hasGestures: signals.hasGestures,
+    gestureScore: signals.gestureScore,
+    recaptchaV3Token,
+    recaptchaV2Token: v2Token,
+  });
+}
+
+async function showOrderChallenge() {
+  const wrap = document.getElementById('order-challenge');
+  const box = document.getElementById('recaptcha-v2-container');
+  if (!wrap || !box) return;
+
+  wrap.hidden = false;
+
+  if (!isRecaptchaV2Configured()) {
+    wrap.querySelector('.cart-checkout__challenge-text').textContent =
+      'Не удалось подтвердить заказ автоматически. Подождите несколько секунд, подвигайте мышью или коснитесь экрана и попробуйте снова. Либо оформите через WhatsApp / MAX.';
+    return;
+  }
+
+  await mountRecaptchaV2(box);
 }
 
 function escapeHtml(str) {

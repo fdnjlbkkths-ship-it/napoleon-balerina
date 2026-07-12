@@ -2250,6 +2250,39 @@
     color: $color-chocolate;
     white-space: nowrap;
   }
+
+  &__challenge {
+    flex: 1 1 100%;
+    margin-top: 0.35rem;
+    padding: 0.85rem 1rem;
+    background: rgba($color-blush, 0.45);
+    border: 1px solid rgba($color-caramel, 0.25);
+    border-radius: $radius-md;
+  }
+
+  &__challenge-text {
+    margin: 0 0 0.75rem;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: $color-text;
+  }
+
+  &__recaptcha {
+    display: flex;
+    justify-content: center;
+    min-height: 78px;
+  }
+}
+
+.antibot-hp {
+  position: absolute;
+  left: -10000px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .field-hint {

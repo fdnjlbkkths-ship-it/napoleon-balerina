@@ -4,7 +4,9 @@
  * Маршруты:
  *   POST /order     — новый заказ с сайта
  *   POST /telegram  — webhook Bot API (кнопки статусов, /orders, /start)
+ *   POST /setup     — зарегистрировать меню команд «/»
  *   GET  /health    — проверка
+ *   GET  /diag      — диагностика токена и команд
  */
 
 const STATUS = {
@@ -16,32 +18,84 @@ const STATUS = {
 
 const ACTIVE = new Set(['new', 'in_progress']);
 
+const BTN = {
+  orders: '📋 Активные',
+  done: '✅ Завершённые',
+  help: 'ℹ️ Справка',
+  menu: '🏠 Меню',
+};
+
+/** Slash-команды для меню «/» в Telegram */
+const BOT_COMMANDS = [
+  { command: 'start', description: 'Меню и кнопки управления' },
+  { command: 'orders', description: 'Активные заказы (новые и в работе)' },
+  { command: 'done', description: 'Завершённые заказы' },
+  { command: 'help', description: 'Справка по боту' },
+  { command: 'menu', description: 'Показать главное меню' },
+];
+
+const COMMANDS_CACHE_KEY = 'meta:bot_commands_v1';
+
+const HELP_TEXT =
+  'Заказы приходят с сайта автоматически.\n\n' +
+  'Кнопки внизу экрана:\n' +
+  `• ${BTN.orders} — новые и в работе\n` +
+  `• ${BTN.done} — готовые и отменённые\n` +
+  `• ${BTN.help} — эта справка\n\n` +
+  'Команды в меню «/»:\n' +
+  BOT_COMMANDS.map((c) => `/${c.command} — ${c.description}`).join('\n') +
+  '\n\nПод карточкой заказа меняйте статус кнопками.\n' +
+  'В списке можно открыть заказ отдельной кнопкой.';
+
+const START_TEXT =
+  'Бот заказов «Наполеон и Балерина» готов.\n\n' +
+  'Пользуйтесь кнопками внизу — команды вводить не нужно.\n\n' +
+  `${BTN.orders} · ${BTN.done} · ${BTN.help}\n\n` +
+  'Список команд также в меню «/» в углу чата.';
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    const path = url.pathname.replace(/\/+$/, '') || '/';
 
     if (request.method === 'OPTIONS') {
       return cors(new Response(null, { status: 204 }), request, env);
     }
 
     try {
-      if (url.pathname === '/health') {
+      if (path === '/health') {
         return json({ ok: true });
       }
 
-      if (url.pathname === '/diag' && request.method === 'GET') {
+      if (path === '/diag' && request.method === 'GET') {
+        if (url.searchParams.get('setup') === '1') {
+          await env.ORDERS.delete(COMMANDS_CACHE_KEY);
+          const setup = await registerBotCommands(env);
+          if (setup?.ok) {
+            await env.ORDERS.put(COMMANDS_CACHE_KEY, JSON.stringify(BOT_COMMANDS));
+          }
+          return json({
+            ok: Boolean(setup?.ok),
+            setup,
+            commands: BOT_COMMANDS,
+          });
+        }
         return await handleDiag(env);
       }
 
-      if (url.pathname === '/order' && request.method === 'POST') {
+      if (path === '/setup' && (request.method === 'POST' || request.method === 'GET')) {
+        return await handleSetup(env);
+      }
+
+      if (path === '/order' && request.method === 'POST') {
         return cors(await handleOrder(request, env), request, env);
       }
 
-      if (url.pathname === '/telegram' && request.method === 'POST') {
+      if (path === '/telegram' && request.method === 'POST') {
         return await handleTelegram(request, env);
       }
 
-      return json({ error: 'Not found' }, 404);
+      return json({ error: 'Not found', path }, 404);
     } catch (err) {
       console.error(err);
       return cors(json({ error: 'Internal error' }, 500), request, env);
@@ -80,6 +134,21 @@ async function handleOrder(request, env) {
     return json({ error: 'Cart is empty' }, 400);
   }
 
+  const antiBot = await evaluateAntiBot(body, env, ip);
+  if (antiBot.action === 'reject') {
+    return json({ error: antiBot.error || 'Forbidden' }, antiBot.status || 403);
+  }
+  if (antiBot.action === 'challenge') {
+    return json(
+      {
+        error: 'challenge_required',
+        message: 'Пройдите проверку «Я не робот» и отправьте заказ снова.',
+        reasons: antiBot.reasons,
+      },
+      428
+    );
+  }
+
   const order = {
     id: makeOrderId(),
     createdAt: new Date().toISOString(),
@@ -115,11 +184,126 @@ async function handleOrder(request, env) {
   return json({ ok: true, orderId: order.id });
 }
 
+/* ───────── Anti-bot (reCAPTCHA + heuristics) ───────── */
+
+async function evaluateAntiBot(body, env, ip) {
+  const reasons = [];
+  const honeypot = String(body.website || body.company || '').trim();
+  if (honeypot) {
+    return { action: 'reject', error: 'Forbidden', status: 403, reasons: ['honeypot'] };
+  }
+
+  const startedAt = Number(body.startedAt) || 0;
+  const now = Date.now();
+  const elapsed = startedAt ? now - startedAt : 0;
+  if (!startedAt || elapsed < 3500) reasons.push('too_fast');
+  if (startedAt > now + 60_000) reasons.push('future_started');
+  if (startedAt && now - startedAt > 2 * 60 * 60 * 1000) reasons.push('stale_session');
+  if (!body.hasGestures) reasons.push('no_gestures');
+
+  const v2Token = String(body.recaptchaV2Token || '').trim();
+  const v3Token = String(body.recaptchaV3Token || '').trim();
+  const v2Secret = String(env.RECAPTCHA_V2_SECRET || '').trim();
+  const v3Secret = String(env.RECAPTCHA_V3_SECRET || '').trim();
+  const minScore = Number(env.RECAPTCHA_V3_MIN_SCORE || 0.5);
+
+  // Passed image/checkbox challenge — accept if Google confirms
+  if (v2Token) {
+    if (!v2Secret) {
+      // Cannot verify — fall through to soft mode below
+    } else {
+      const v2 = await verifyRecaptcha(v2Secret, v2Token, ip);
+      if (v2.success) return { action: 'allow', reasons: [] };
+      return {
+        action: 'challenge',
+        reasons: [...reasons, 'v2_failed'],
+      };
+    }
+  }
+
+  if (v3Secret) {
+    if (!v3Token) {
+      reasons.push('missing_v3');
+    } else {
+      const v3 = await verifyRecaptcha(v3Secret, v3Token, ip);
+      if (!v3.success) {
+        reasons.push('v3_failed');
+      } else if (typeof v3.score === 'number' && v3.score < minScore) {
+        reasons.push('low_score');
+      }
+      if (v3.action && v3.action !== 'order') {
+        reasons.push('bad_action');
+      }
+    }
+  }
+
+  // Extra velocity signal (soft): many recent attempts
+  if (await isHighOrderVelocity(env, ip)) {
+    reasons.push('high_velocity');
+  }
+
+  // Without Google secrets we cannot show image captcha — only hard-reject honeypot
+  // and ignore soft heuristic challenges so real customers are not stuck.
+  if (!v3Secret && !v2Secret) {
+    return { action: 'allow', reasons: [] };
+  }
+
+  if (reasons.length) {
+    return { action: 'challenge', reasons };
+  }
+  return { action: 'allow', reasons: [] };
+}
+
+async function verifyRecaptcha(secret, token, ip) {
+  try {
+    const params = new URLSearchParams();
+    params.set('secret', secret);
+    params.set('response', token);
+    if (ip && ip !== 'unknown') params.set('remoteip', ip);
+
+    const res = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: params.toString(),
+    });
+    const data = await res.json();
+    return {
+      success: Boolean(data.success),
+      score: data.score,
+      action: data.action,
+      errorCodes: data['error-codes'] || [],
+    };
+  } catch (err) {
+    console.error('siteverify failed', err);
+    return { success: false, score: 0, action: '', errorCodes: ['network'] };
+  }
+}
+
+async function isHighOrderVelocity(env, ip) {
+  const key = `order-attempts:${ip}`;
+  const now = Math.floor(Date.now() / 1000);
+  const data = (await env.ORDERS.get(key, { type: 'json' })) || { count: 0, start: now };
+
+  if (now - data.start >= 120) {
+    data.count = 1;
+    data.start = now;
+  } else {
+    data.count += 1;
+  }
+
+  await env.ORDERS.put(key, JSON.stringify(data), { expirationTtl: 300 });
+  // 4+ attempts in 2 minutes → suspicious (challenge, not hard ban)
+  return data.count >= 4;
+}
+
 /* ───────── Telegram webhook ───────── */
 
 async function handleTelegram(request, env) {
   const update = await request.json();
   console.log('update keys', Object.keys(update || {}));
+
+  // Меню «/» в углу чата — один раз (кэш в KV)
+  await ensureBotCommands(env);
 
   if (update.callback_query) {
     await onCallback(update.callback_query, env);
@@ -150,40 +334,62 @@ async function handleTelegram(request, env) {
     return json({ ok: true });
   }
 
-  if (text.startsWith('/start')) {
-    const sent = await tg(env, 'sendMessage', {
-      chat_id: chatId,
-      text:
-        'Бот заказов «Наполеон и Балерина» готов.\n\n' +
-        'Команды:\n' +
-        '/orders — активные заказы\n' +
-        '/done — завершённые (последние 20)\n' +
-        '/help — справка',
-    });
-    console.log('start reply', sent?.ok, sent?.description);
-  } else if (text.startsWith('/orders')) {
+  const action = resolveAdminAction(text);
+  if (action === 'start' || action === 'menu') {
+    await sendMenu(env, chatId);
+  } else if (action === 'orders') {
     await sendOrderList(env, chatId, true);
-  } else if (text.startsWith('/done')) {
+  } else if (action === 'done') {
     await sendOrderList(env, chatId, false);
-  } else if (text.startsWith('/help')) {
-    const sent = await tg(env, 'sendMessage', {
-      chat_id: chatId,
-      text:
-        'Заказы приходят с сайта автоматически.\n' +
-        'Меняйте статус кнопками под карточкой.\n' +
-        '/orders — новые и в работе\n' +
-        '/done — готовые и отменённые',
-    });
-    console.log('help reply', sent?.ok, sent?.description);
+  } else if (action === 'help') {
+    await sendHelp(env, chatId);
   } else {
-    const sent = await tg(env, 'sendMessage', {
+    await tg(env, 'sendMessage', {
       chat_id: chatId,
-      text: 'Команды: /orders, /done, /help',
+      text: 'Выберите действие кнопками внизу экрана.',
+      reply_markup: mainReplyKeyboard(),
     });
-    console.log('fallback reply', sent?.ok, sent?.description);
   }
 
   return json({ ok: true });
+}
+
+function resolveAdminAction(text) {
+  const raw = String(text || '').trim();
+  const t = raw.toLowerCase();
+
+  if (raw === BTN.orders || t.startsWith('/orders') || t === 'активные') return 'orders';
+  if (raw === BTN.done || t.startsWith('/done') || t === 'завершённые' || t === 'завершенные') {
+    return 'done';
+  }
+  if (raw === BTN.help || t.startsWith('/help') || t === 'справка') return 'help';
+  if (raw === BTN.menu || t.startsWith('/start') || t.startsWith('/menu') || t === 'меню') {
+    return t.startsWith('/start') ? 'start' : 'menu';
+  }
+  return null;
+}
+
+async function sendMenu(env, chatId) {
+  await tg(env, 'sendMessage', {
+    chat_id: chatId,
+    text: START_TEXT,
+    reply_markup: mainReplyKeyboard(),
+  });
+}
+
+async function sendHelp(env, chatId) {
+  await tg(env, 'sendMessage', {
+    chat_id: chatId,
+    text: HELP_TEXT,
+    reply_markup: {
+      inline_keyboard: [
+        [
+          { text: BTN.orders, callback_data: 'nav:orders' },
+          { text: BTN.done, callback_data: 'nav:done' },
+        ],
+      ],
+    },
+  });
 }
 
 async function handleDiag(env) {
@@ -197,6 +403,7 @@ async function handleDiag(env) {
 
   let bot = null;
   let telegramError = null;
+  let commands = null;
 
   if (hasToken) {
     const me = await tg(env, 'getMe', {});
@@ -209,6 +416,9 @@ async function handleDiag(env) {
     } else {
       telegramError = me?.description || 'getMe failed';
     }
+
+    const cmds = await tg(env, 'getMyCommands', {});
+    if (cmds?.ok) commands = cmds.result;
   }
 
   return json({
@@ -219,10 +429,42 @@ async function handleDiag(env) {
     tokenLooksValid: /^\d+:[A-Za-z0-9_-]+$/.test(token),
     adminIdEndsWith: admin ? admin.slice(-4) : null,
     bot,
+    commands,
+    expectedCommands: BOT_COMMANDS,
     telegramError,
     hint: bot
-      ? `Пишите боту @${bot.username} команду /start`
+      ? `Пишите боту @${bot.username} команду /start. Меню «/»: POST /setup`
       : 'Снова: wrangler secret put BOT_TOKEN — вставьте токен без пробелов и звёздочек',
+  });
+}
+
+async function handleSetup(env) {
+  await env.ORDERS.delete(COMMANDS_CACHE_KEY);
+  const result = await registerBotCommands(env);
+  return json({
+    ok: Boolean(result?.ok),
+    commands: BOT_COMMANDS,
+    telegram: result,
+  });
+}
+
+async function ensureBotCommands(env) {
+  try {
+    const cached = await env.ORDERS.get(COMMANDS_CACHE_KEY);
+    const fingerprint = JSON.stringify(BOT_COMMANDS);
+    if (cached === fingerprint) return;
+    const result = await registerBotCommands(env);
+    if (result?.ok) {
+      await env.ORDERS.put(COMMANDS_CACHE_KEY, fingerprint);
+    }
+  } catch (err) {
+    console.error('ensureBotCommands', err);
+  }
+}
+
+async function registerBotCommands(env) {
+  return tg(env, 'setMyCommands', {
+    commands: BOT_COMMANDS,
   });
 }
 
@@ -235,6 +477,38 @@ async function onCallback(cq, env) {
       callback_query_id: cq.id,
       text: 'Нет доступа',
       show_alert: true,
+    });
+    return;
+  }
+
+  const nav = /^nav:(\w+)$/.exec(data);
+  if (nav) {
+    const action = nav[1];
+    await tg(env, 'answerCallbackQuery', { callback_query_id: cq.id });
+    if (action === 'orders') await sendOrderList(env, chatId, true);
+    else if (action === 'done') await sendOrderList(env, chatId, false);
+    else if (action === 'help') await sendHelp(env, chatId);
+    else if (action === 'menu') await sendMenu(env, chatId);
+    return;
+  }
+
+  const open = /^open:(.+)$/.exec(data);
+  if (open) {
+    const order = await getOrder(env, open[1]);
+    if (!order) {
+      await tg(env, 'answerCallbackQuery', {
+        callback_query_id: cq.id,
+        text: 'Заказ не найден',
+        show_alert: true,
+      });
+      return;
+    }
+    await tg(env, 'answerCallbackQuery', { callback_query_id: cq.id });
+    await tg(env, 'sendMessage', {
+      chat_id: chatId,
+      text: formatOrderHtml(order),
+      parse_mode: 'HTML',
+      reply_markup: statusKeyboard(order.id, order.status),
     });
     return;
   }
@@ -295,28 +569,77 @@ async function sendOrderList(env, chatId, activeOnly) {
     if (activeOnly && !ACTIVE.has(o.status)) continue;
     if (!activeOnly && ACTIVE.has(o.status)) continue;
     orders.push(o);
-    if (orders.length >= 20) break;
+    if (orders.length >= 12) break;
   }
 
   if (!orders.length) {
     await tg(env, 'sendMessage', {
       chat_id: chatId,
       text: activeOnly ? 'Активных заказов нет.' : 'Завершённых заказов пока нет.',
+      reply_markup: {
+        inline_keyboard: [
+          [
+            {
+              text: activeOnly ? BTN.done : BTN.orders,
+              callback_data: activeOnly ? 'nav:done' : 'nav:orders',
+            },
+            { text: BTN.menu, callback_data: 'nav:menu' },
+          ],
+        ],
+      },
     });
     return;
   }
 
-  const lines = orders.map((o) => {
+  const lines = orders.map((o, i) => {
     const when = formatDateTime(o.deliveryDate, o.deliveryTime) || '—';
     const who = escapeHtml(o.name || o.phone || 'Без имени');
-    return `${STATUS[o.status]} <b>${escapeHtml(o.id)}</b> — ${who}\n   ${formatMoney(o.total)} · доставка ${escapeHtml(when)}`;
+    return `${i + 1}. ${STATUS[o.status]} <b>${escapeHtml(o.id)}</b> — ${who}\n   ${formatMoney(o.total)} · доставка ${escapeHtml(when)}`;
   });
 
   await tg(env, 'sendMessage', {
     chat_id: chatId,
     text: (activeOnly ? '<b>Активные заказы</b>\n\n' : '<b>Завершённые</b>\n\n') + lines.join('\n\n'),
     parse_mode: 'HTML',
+    reply_markup: {
+      inline_keyboard: orderListKeyboard(orders, activeOnly),
+    },
   });
+}
+
+function mainReplyKeyboard() {
+  return {
+    keyboard: [
+      [{ text: BTN.orders }, { text: BTN.done }],
+      [{ text: BTN.help }, { text: BTN.menu }],
+    ],
+    resize_keyboard: true,
+    is_persistent: true,
+  };
+}
+
+function orderListKeyboard(orders, activeOnly) {
+  const rows = orders.map((o) => [
+    {
+      text: `${STATUS[o.status]} ${shortOrderId(o.id)} · ${formatMoney(o.total)}`,
+      callback_data: `open:${o.id}`,
+    },
+  ]);
+
+  rows.push([
+    {
+      text: activeOnly ? BTN.done : BTN.orders,
+      callback_data: activeOnly ? 'nav:done' : 'nav:orders',
+    },
+    { text: BTN.menu, callback_data: 'nav:menu' },
+  ]);
+
+  return rows;
+}
+
+function shortOrderId(id) {
+  const s = String(id || '');
+  return s.length > 14 ? `…${s.slice(-10)}` : s;
 }
 
 /* ───────── Storage ───────── */
@@ -390,6 +713,10 @@ function statusKeyboard(orderId, current) {
     inline_keyboard: [
       [row('new', '🆕 Новый'), row('in_progress', '⏳ В работе')],
       [row('done', '✅ Готов'), row('cancelled', '❌ Отменён')],
+      [
+        { text: BTN.orders, callback_data: 'nav:orders' },
+        { text: BTN.done, callback_data: 'nav:done' },
+      ],
     ],
   };
 }
