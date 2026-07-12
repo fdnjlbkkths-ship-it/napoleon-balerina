@@ -21,7 +21,9 @@ export function formatFillingExtraLabel(filling) {
   return `+${getFillingExtra(filling)} ₽`;
 }
 
-export { escapeHtml } from './sanitize.js';
+import { escapeHtml } from './sanitize.js';
+
+export { escapeHtml };
 
 /**
  * Выпадающее окошко начинок — анимация как у категорий / фильтров.
