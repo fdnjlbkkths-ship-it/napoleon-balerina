@@ -352,43 +352,6 @@ async function consumeEmailToken(env, token, email) {
   return true;
 }
 
-async function getSendPulseToken(env) {
-  const cached = await env.ORDERS.get('meta:sendpulse_token', { type: 'json' });
-  if (cached?.access_token && cached.expiresAt > Date.now() + 60_000) {
-    return cached.access_token;
-  }
-
-  const clientId = env.SENDPULSE_ID || env.SENDPULSE_CLIENT_ID;
-  const clientSecret = env.SENDPULSE_SECRET || env.SENDPULSE_CLIENT_SECRET;
-  if (!clientId || !clientSecret) return '';
-
-  const res = await fetch('https://api.sendpulse.com/oauth/access_token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      grant_type: 'client_credentials',
-      client_id: clientId,
-      client_secret: clientSecret,
-    }),
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok || !data.access_token) {
-    console.error('sendpulse oauth', res.status, data);
-    return '';
-  }
-
-  const expiresIn = Number(data.expires_in) || 3600;
-  await env.ORDERS.put(
-    'meta:sendpulse_token',
-    JSON.stringify({
-      access_token: data.access_token,
-      expiresAt: Date.now() + expiresIn * 1000,
-    }),
-    { expirationTtl: Math.max(60, expiresIn) }
-  );
-  return data.access_token;
-}
-
 function parseEmailFrom(env) {
   const raw = String(env.EMAIL_FROM || '').trim();
   const name = String(env.EMAIL_FROM_NAME || 'Наполеон и Балерина').trim();
@@ -405,31 +368,23 @@ function parseEmailFrom(env) {
   return { name, email: raw };
 }
 
-function utf8ToBase64(str) {
-  const bytes = new TextEncoder().encode(str);
-  let binary = '';
-  bytes.forEach((b) => {
-    binary += String.fromCharCode(b);
-  });
-  return btoa(binary);
-}
-
 async function sendOtpEmail(env, email, code) {
+  const apiKey = env.NOTISEND_API_KEY;
   const from = parseEmailFrom(env);
+
+  if (!apiKey) {
+    return {
+      ok: false,
+      message:
+        'Почта не настроена. В NotiSend откройте API и SMTP, скопируйте ключ и выполните: npx wrangler secret put NOTISEND_API_KEY',
+    };
+  }
+
   if (!from.email) {
     return {
       ok: false,
       message:
-        'Не указан EMAIL_FROM. Добавьте подтверждённый адрес отправителя SendPulse: npx wrangler secret put EMAIL_FROM',
-    };
-  }
-
-  const token = await getSendPulseToken(env);
-  if (!token) {
-    return {
-      ok: false,
-      message:
-        'Почта не настроена. Зарегистрируйтесь на sendpulse.com/ru (бесплатно), возьмите ID и Secret в настройках API и выполните: npx wrangler secret put SENDPULSE_ID и SENDPULSE_SECRET',
+        'Не указан EMAIL_FROM. Укажите логин отправителя из NotiSend (SMTP): npx wrangler secret put EMAIL_FROM',
     };
   }
 
@@ -447,35 +402,36 @@ async function sendOtpEmail(env, email, code) {
     `<p>Наполеон и Балерина</p>`;
 
   try {
-    const res = await fetch('https://api.sendpulse.com/smtp/emails', {
+    const res = await fetch('https://api.notisend.ru/v1/email/messages', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        email: {
-          html: utf8ToBase64(html),
-          text,
-          subject: 'Код подтверждения заказа — Наполеон и Балерина',
-          from: { name: from.name, email: from.email },
-          to: [{ email, name: email }],
-        },
+        from_email: from.email,
+        from_name: from.name,
+        to: email,
+        subject: 'Код подтверждения заказа — Наполеон и Балерина',
+        text,
+        html,
       }),
     });
 
     const data = await res.json().catch(() => ({}));
-    if (!res.ok || data.result === false) {
-      console.error('sendpulse send', res.status, data);
+    if (!res.ok) {
+      console.error('notisend send', res.status, data);
+      const detail = data?.errors?.[0]?.detail || '';
       return {
         ok: false,
-        message:
-          'Не удалось отправить письмо. Проверьте: SMTP в SendPulse включён, адрес отправителя подтверждён, EMAIL_FROM совпадает с ним.',
+        message: detail
+          ? `Не удалось отправить письмо: ${detail}`
+          : 'Не удалось отправить письмо. Проверьте API-ключ NotiSend и EMAIL_FROM (логин SMTP).',
       };
     }
     return { ok: true };
   } catch (err) {
-    console.error('sendpulse fetch', err);
+    console.error('notisend fetch', err);
     return { ok: false, message: 'Ошибка отправки письма' };
   }
 }
