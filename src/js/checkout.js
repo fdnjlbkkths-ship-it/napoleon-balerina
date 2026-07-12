@@ -37,7 +37,7 @@ const STEPS = [
 
 const CONFIRM_ICONS = {
   sbp: `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect width="40" height="40" rx="10" fill="#5C4033"/><path fill="#F5E6D3" d="M21.8 9.5 12 21.2h7.2l-1 9.3L28 18.8h-7.2l1-9.3z"/></svg>`,
-  phone: `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect width="40" height="40" rx="10" fill="#E8D5C4"/><path fill="#5C4033" d="M14.2 11.8c.4-1 1.4-1.6 2.5-1.5l3 .3c.9.1 1.6.8 1.8 1.7l.7 3.1c.2.8-.1 1.6-.7 2.1l-1.5 1.2a14.6 14.6 0 0 0 6.2 6.2l1.2-1.5c.5-.6 1.3-.9 2.1-.7l3.1.7c.9.2 1.6.9 1.7 1.8l.3 3c.1 1.1-.5 2.1-1.5 2.5-2 .8-8.4 1-13.7-4.3S13.4 13.8 14.2 11.8z"/></svg>`,
+  phone: `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect width="40" height="40" rx="10" fill="#E8D5C4"/><path fill="#5C4033" transform="translate(20 20) scale(1.15) translate(-12 -12)" d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>`,
   telegram: MESSENGER_ICONS.telegram,
   max: MESSENGER_ICONS.max,
 };
@@ -265,9 +265,12 @@ function renderProgress() {
   const el = document.getElementById('checkout-progress');
   if (!el) return;
   el.innerHTML = STEPS.map((s) => {
-    const state = s.id < step ? 'is-done' : s.id === step ? 'is-current' : '';
+    const classes = ['checkout-progress__item'];
+    // Completed stages light green; on success (step 4) mark all as done.
+    if (s.id < step || step === 4) classes.push('is-done', 'is-complete');
+    if (s.id === step) classes.push('is-current');
     return `
-      <li class="checkout-progress__item ${state}">
+      <li class="${classes.join(' ')}">
         <span class="checkout-progress__num">${s.id}</span>
         <span class="checkout-progress__label">${s.label}</span>
       </li>`;

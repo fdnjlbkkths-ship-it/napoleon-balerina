@@ -51,22 +51,44 @@
       }
     }
 
-    &.is-done,
     &.is-current {
       opacity: 1;
       color: $color-chocolate;
+
+      .checkout-progress__num {
+        background: $color-caramel;
+        color: $color-white;
+        border-color: $color-caramel;
+      }
     }
 
-    &.is-current .checkout-progress__num {
-      background: $color-caramel;
-      color: $color-white;
-      border-color: $color-caramel;
+    // Completed steps — green (matches form-message--success accents)
+    &.is-done,
+    &.is-complete {
+      opacity: 1;
+      color: #2d6a2d;
+
+      .checkout-progress__num {
+        background: #6abf69;
+        color: $color-white;
+        border-color: #5aaf59;
+      }
+
+      &:not(:last-child)::after {
+        background: rgba(#6abf69, 0.65);
+      }
     }
 
-    &.is-done .checkout-progress__num {
-      background: rgba($color-caramel, 0.15);
-      border-color: $color-caramel;
-      color: $color-chocolate;
+    // Current step on success screen stays green (done + current)
+    &.is-done.is-current,
+    &.is-complete.is-current {
+      color: #2d6a2d;
+
+      .checkout-progress__num {
+        background: #5aaf59;
+        border-color: #4a9f49;
+        box-shadow: 0 0 0 2px rgba(#6abf69, 0.35);
+      }
     }
   }
 
@@ -317,11 +339,14 @@
     flex-shrink: 0;
     border-radius: $radius-sm;
     overflow: hidden;
+    line-height: 0;
 
     svg {
       width: 100%;
       height: 100%;
       display: block;
+      margin: 0;
+      flex-shrink: 0;
     }
   }
 
