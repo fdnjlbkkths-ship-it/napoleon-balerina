@@ -16,7 +16,6 @@ import {
   initFillingDropdowns,
   renderFillingDropdown,
 } from './fillings.js';
-import { getProductCompositionLines } from './composition.js';
 
 function menuUrl(category, subcategory) {
   const base = `menu.html?category=${category}`;
@@ -332,23 +331,6 @@ function createProductCard(product) {
   const fillings = Array.isArray(product.fillings) ? product.fillings : [];
   const initialFilling = fillings[0] || '';
   const initialPrice = getPriceWithFilling(product.price, initialFilling);
-  const compositionLines = getProductCompositionLines(product);
-  const previewLines = compositionLines.slice(0, 4);
-  const hasMoreComposition = compositionLines.length > 4;
-
-  const compositionHtml = previewLines.length
-    ? `<div class="product-card__meta-block">
-        <p class="product-card__meta-label">Состав</p>
-        <ul class="product-card__composition">
-          ${previewLines.map((l) => `<li>${escapeAttr(l)}</li>`).join('')}
-        </ul>
-        ${
-          hasMoreComposition
-            ? `<span class="product-card__composition-more">Ещё ${compositionLines.length - 4} — на странице товара</span>`
-            : ''
-        }
-      </div>`
-    : '';
 
   const specsHtml = [
     product.weight
@@ -377,7 +359,6 @@ function createProductCard(product) {
           <div class="product-card__category">${getProductCategoryLabel(product)}</div>
           <h3 class="product-card__name">${escapeAttr(product.name)}</h3>
           <p class="product-card__price" data-price>${formatPrice(initialPrice)}</p>
-          ${compositionHtml}
           ${specsHtml}
         </div>
       </a>

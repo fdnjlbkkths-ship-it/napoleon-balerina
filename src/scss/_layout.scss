@@ -1178,10 +1178,6 @@
     overflow: hidden;
   }
 
-  &__meta-block {
-    margin: 0.15rem 0 0.2rem;
-  }
-
   &__meta-label {
     flex-shrink: 0;
     display: block;
@@ -1191,27 +1187,6 @@
     text-transform: uppercase;
     color: $color-caramel;
     margin: 0 0 0.35rem;
-  }
-
-  &__composition {
-    margin: 0;
-    padding: 0 0 0 1rem;
-    list-style: disc;
-    font-size: 0.8125rem;
-    line-height: 1.45;
-    color: $color-text;
-
-    li + li {
-      margin-top: 0.2rem;
-    }
-  }
-
-  &__composition-more {
-    display: block;
-    margin-top: 0.35rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: $color-caramel;
   }
 
   &__spec {
@@ -2902,17 +2877,18 @@
 
   &__grid {
     display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 1.5rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
     overflow: visible;
     align-items: stretch;
 
     @media (min-width: $breakpoint-sm) {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1.25rem;
     }
 
     @media (min-width: $breakpoint-lg) {
       grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1.5rem;
     }
   }
 }

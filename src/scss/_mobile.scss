@@ -257,21 +257,6 @@ textarea,
       margin-bottom: 0.25rem;
     }
 
-    &__composition {
-      font-size: 0.6875rem;
-      padding-left: 0.85rem;
-      line-height: 1.35;
-
-      li + li {
-        margin-top: 0.12rem;
-      }
-    }
-
-    &__composition-more {
-      font-size: 0.625rem;
-      margin-top: 0.25rem;
-    }
-
     &__spec {
       margin: 0.25rem 0 0;
       gap: 0.1rem;
