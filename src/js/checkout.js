@@ -287,6 +287,7 @@ function renderStepPanel() {
         setFieldError('[data-checkout-phone-group]', '#checkout-phone', '#checkout-phone-error', '', false);
       }
     };
+    clearValidPhoneError();
     phoneInput?.addEventListener('input', clearValidPhoneError);
     phoneInput?.addEventListener('change', clearValidPhoneError);
     phoneInput?.addEventListener('blur', clearValidPhoneError);

@@ -2509,6 +2509,10 @@
   font-size: 0.8125rem;
   font-weight: 600;
   color: #b42318;
+
+  &[hidden] {
+    display: none;
+  }
 }
 
 .required-mark {
