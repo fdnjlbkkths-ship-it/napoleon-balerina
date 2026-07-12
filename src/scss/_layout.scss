@@ -1810,9 +1810,13 @@
 // About page
 .about-hero {
   padding-top: calc($header-height + 3rem);
-  padding-bottom: 3rem;
+  padding-bottom: 1rem;
   text-align: center;
   background: linear-gradient(180deg, $color-blush 0%, $color-cream 100%);
+
+  .section__subtitle {
+    margin-bottom: 0;
+  }
 }
 
 .about-story {
@@ -2810,9 +2814,13 @@
 // Page header (inner pages)
 .page-header {
   padding-top: calc($header-height + 3rem);
-  padding-bottom: 2rem;
+  padding-bottom: 1rem;
   text-align: center;
   background: linear-gradient(180deg, $color-blush 0%, $color-cream 100%);
+
+  .section__subtitle {
+    margin-bottom: 0;
+  }
 }
 
 // CTA section
