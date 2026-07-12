@@ -218,10 +218,10 @@ textarea,
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     left: 0;
-    right: auto;
-    min-width: 0;
-    width: max-content;
-    max-width: min(260px, calc(100% - 0.5rem));
+    right: 0;
+    min-width: 100%;
+    width: auto;
+    max-width: none;
   }
 
   .product-page {
