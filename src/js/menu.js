@@ -110,12 +110,43 @@ export function initMenuPage() {
   initToolbarDropdowns(document.querySelector('.products__toolbar'));
   renderFilters();
   renderProducts();
-  initFilterDropdowns(filtersContainer);
+  bindFilterInteractions();
 
   if (searchInput) {
     searchInput.addEventListener('input', (e) => {
       searchQuery = e.target.value;
       renderProducts();
+    });
+  }
+
+  function syncCategoryUrl() {
+    const url = new URL(window.location.href);
+    if (activeCategory && activeCategory !== 'all') {
+      url.searchParams.set('category', activeCategory);
+    } else {
+      url.searchParams.delete('category');
+    }
+    if (activeSubcategory && activeSubcategory !== 'all') {
+      url.searchParams.set('subcategory', activeSubcategory);
+    } else {
+      url.searchParams.delete('subcategory');
+    }
+    const next = `${url.pathname}${url.search}${url.hash}`;
+    window.history.replaceState({}, '', next);
+  }
+
+  function bindFilterInteractions() {
+    initFilterDropdowns(filtersContainer, {
+      onToggleClose: (catId) => {
+        // Повторное нажатие закрыло шторку — снимаем выбранную категорию
+        if (activeCategory !== catId) return;
+        activeCategory = 'all';
+        activeSubcategory = 'all';
+        syncCategoryUrl();
+        renderFilters();
+        renderProducts();
+        bindFilterInteractions();
+      },
     });
   }
 
@@ -275,13 +306,14 @@ function initToolbarDropdowns(container) {
   });
 }
 
-function initFilterDropdowns(container) {
+function initFilterDropdowns(container, { onToggleClose } = {}) {
   container.querySelectorAll('.filter-dropdown').forEach((dropdown) => {
     if (dropdown.dataset.bound) return;
     dropdown.dataset.bound = '1';
 
     let timer;
     const trigger = dropdown.querySelector('.filter-btn');
+    const catId = dropdown.dataset.filterCategory || trigger?.dataset.category || '';
 
     const open = () => {
       clearTimeout(timer);
@@ -300,8 +332,13 @@ function initFilterDropdowns(container) {
     trigger?.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      if (dropdown.classList.contains('open')) close();
-      else open();
+      if (dropdown.classList.contains('open')) {
+        close();
+        trigger.blur();
+        onToggleClose?.(catId);
+      } else {
+        open();
+      }
     });
 
     if (canHoverFine()) {

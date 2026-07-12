@@ -411,6 +411,12 @@
 
 .filter-dropdown {
   display: inline-block;
+
+  &.open > .filter-btn {
+    background: $color-caramel;
+    color: $color-white;
+    border-color: $color-caramel;
+  }
 }
 
 .filter-btn--has-menu span {
@@ -1072,11 +1078,19 @@
   border: 1px solid rgba($color-caramel, 0.2);
   transition: all $transition;
 
-  &:hover,
   &.active {
     background: $color-caramel;
     color: $color-white;
     border-color: $color-caramel;
+  }
+
+  // На тач-устройствах :hover залипает после нажатия
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: $color-caramel;
+      color: $color-white;
+      border-color: $color-caramel;
+    }
   }
 }
 
