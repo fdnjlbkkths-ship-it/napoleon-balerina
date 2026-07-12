@@ -249,7 +249,7 @@ async function handleOtpSend(request, env) {
   }
 
   const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-  if (!(await allowRate(env, `otp-ip:${ip}`, 8, 60 * 60))) {
+  if (!(await allowRate(env, `otp-ip:${ip}`, 30, 60 * 60))) {
     return json({ error: 'rate_limited', message: 'Слишком много запросов. Попробуйте позже.' }, 429);
   }
 
@@ -265,18 +265,16 @@ async function handleOtpSend(request, env) {
     return json({ error: 'email_required', message: 'Укажите корректный email' }, 400);
   }
 
-  if (!(await allowRate(env, `otp-email:${email}`, 5, 60 * 60))) {
-    return json({ error: 'rate_limited', message: 'На этот email уже отправляли код. Подождите.' }, 429);
+  // Сначала проверяем лимит без увеличения счётчика — иначе ошибки NotiSend
+  // и тестовые запросы блокируют реальную отправку клиенту.
+  if (!(await peekRate(env, `otp-email:${email}`, 8, 60 * 60))) {
+    return json(
+      { error: 'rate_limited', message: 'На этот email уже отправляли код. Подождите около часа.' },
+      429
+    );
   }
 
   const code = makeOtpCode();
-  const codeHash = await hashText(code);
-  await env.ORDERS.put(
-    `otp:code:${email}`,
-    JSON.stringify({ hash: codeHash, attempts: 0, createdAt: Date.now() }),
-    { expirationTtl: 60 * 10 }
-  );
-
   const sent = await sendOtpEmail(env, email, code);
   if (!sent.ok) {
     return json(
@@ -287,6 +285,15 @@ async function handleOtpSend(request, env) {
       503
     );
   }
+
+  await allowRate(env, `otp-email:${email}`, 8, 60 * 60);
+
+  const codeHash = await hashText(code);
+  await env.ORDERS.put(
+    `otp:code:${email}`,
+    JSON.stringify({ hash: codeHash, attempts: 0, createdAt: Date.now() }),
+    { expirationTtl: 60 * 10 }
+  );
 
   return json({ ok: true, expiresInSec: 600 });
 }
@@ -1222,6 +1229,15 @@ function formatDateTime(date, time) {
     d = `${day}.${m}.${y}`;
   }
   return [d, time].filter(Boolean).join(' ');
+}
+
+async function peekRate(env, id, limit, windowSec) {
+  const key = `rate:${id}`;
+  const now = Math.floor(Date.now() / 1000);
+  const data = await env.ORDERS.get(key, { type: 'json' });
+  if (!data?.start) return true;
+  if (now - data.start >= windowSec) return true;
+  return Number(data.count || 0) < limit;
 }
 
 async function allowRate(env, ip, limit, windowSec) {
