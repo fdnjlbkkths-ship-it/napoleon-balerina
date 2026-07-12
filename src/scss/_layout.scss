@@ -570,7 +570,7 @@
   &__dots {
     position: absolute;
     left: 50%;
-    bottom: clamp(5rem, 11vh, 6.5rem);
+    bottom: calc(clamp(5rem, 11vh, 6.5rem) + 10px);
     z-index: 3;
     display: flex;
     align-items: center;
@@ -580,8 +580,8 @@
 
   &__dot {
     position: relative;
-    width: 0.55rem;
-    height: 0.55rem;
+    width: 0.4rem;
+    height: 0.4rem;
     padding: 0;
     border: 0;
     border-radius: 50%;
