@@ -230,11 +230,29 @@ textarea,
   }
 
   .hero {
+    &__content {
+      width: 100%;
+      max-width: 22rem;
+      margin-inline: auto;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    &__text {
+      margin-inline: auto;
+      margin-bottom: 1.5rem;
+    }
+
     &__actions {
       flex-direction: column;
-      align-items: stretch;
+      align-items: center;
+      justify-content: center;
       width: 100%;
-      max-width: 20rem;
+      max-width: 17.5rem;
+      margin-inline: auto;
+      gap: 0.75rem;
 
       .btn {
         width: 100%;
@@ -242,8 +260,17 @@ textarea,
       }
     }
 
+    // место под точки карусели + индикатор скролла
     &__container {
-      padding-bottom: calc(4.5rem + var(--safe-bottom));
+      padding-bottom: calc(8.25rem + var(--safe-bottom));
+    }
+
+    &__dots {
+      bottom: calc(3.5rem + var(--safe-bottom));
+    }
+
+    &__scroll {
+      bottom: calc(0.85rem + var(--safe-bottom));
     }
   }
 
