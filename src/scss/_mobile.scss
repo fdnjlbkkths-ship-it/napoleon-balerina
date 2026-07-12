@@ -122,9 +122,22 @@ textarea,
 @media (max-width: #{$breakpoint-md - 1px}) {
   .products {
     &__filters {
-      justify-content: flex-start;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 0.55rem;
       margin-bottom: 1rem;
+      justify-content: stretch;
+      align-items: stretch;
+
+      > .filter-btn,
+      > .filter-dropdown {
+        width: 100%;
+        min-width: 0;
+      }
+
+      > .filter-dropdown {
+        display: block;
+      }
     }
 
     &__toolbar {
@@ -162,7 +175,26 @@ textarea,
 
   .filter-btn {
     min-height: 42px;
-    padding: 0.55rem 1rem;
+    width: 100%;
+    padding: 0.55rem 0.65rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 0.25rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.75rem;
+    line-height: 1.2;
+  }
+
+  .filter-btn--has-menu {
+    justify-content: center;
+  }
+
+  .filter-dropdown .filter-btn {
+    width: 100%;
   }
 
   .toolbar-dropdown {
