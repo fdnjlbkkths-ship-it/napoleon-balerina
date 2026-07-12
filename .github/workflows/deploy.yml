@@ -35,6 +35,8 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           VITE_ORDER_API_URL: ${{ secrets.VITE_ORDER_API_URL }}
           VITE_ORDER_SECRET: ${{ secrets.VITE_ORDER_SECRET }}
+          VITE_RECAPTCHA_V3_SITE_KEY: ${{ secrets.VITE_RECAPTCHA_V3_SITE_KEY }}
+          VITE_RECAPTCHA_V2_SITE_KEY: ${{ secrets.VITE_RECAPTCHA_V2_SITE_KEY }}
 
       - uses: actions/upload-pages-artifact@v3
         with:
