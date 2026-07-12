@@ -98,12 +98,18 @@
     font-weight: 300;
     line-height: 1.2;
     letter-spacing: 0.01em;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 
     @media (min-width: $breakpoint-md) {
       font-size: 1.35rem;
+      white-space: nowrap;
+    }
+  }
+
+  &__logo-br {
+    display: none;
+
+    @media (max-width: #{$breakpoint-md - 1px}) {
+      display: inline;
     }
   }
 
