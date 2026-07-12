@@ -136,7 +136,13 @@ textarea,
 
     &__search {
       max-width: none;
+      width: 100%;
       margin-bottom: 1.25rem;
+    }
+
+    &__filters,
+    &__toolbar {
+      width: 100%;
     }
   }
 
@@ -167,7 +173,9 @@ textarea,
     -webkit-overflow-scrolling: touch;
     left: 0;
     right: auto;
-    min-width: min(260px, calc(100vw - 2rem));
+    min-width: 0;
+    width: max-content;
+    max-width: min(260px, calc(100% - 0.5rem));
   }
 
   .product-page {
