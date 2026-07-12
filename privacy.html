@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="description" content="Контакты кондитерской Наполеон и Балерина — адрес, телефон, email, карта проезда и форма обратной связи.">
-  <title>Контакты — Наполеон и Балерина</title>
+  <meta name="description" content="Политика конфиденциальности кондитерской Наполеон и Балерина — cookies, аналитика посещений, заказы.">
+  <title>Политика конфиденциальности — Наполеон и Балерина</title>
   <link rel="icon" type="image/jpeg" href="images/logo.jpg">
 </head>
 <body>
@@ -49,80 +49,73 @@
   <main>
     <header class="page-header">
       <div class="container">
-        <h1 data-animate>Контакты</h1>
-        <p class="section__subtitle" data-animate>Мы всегда рады вашему визиту и звонку</p>
+        <h1 data-animate>Политика конфиденциальности</h1>
+        <p class="section__subtitle" data-animate>Как мы обрабатываем данные на сайте</p>
       </div>
     </header>
 
-    <section class="section" aria-labelledby="contacts-info">
+    <section class="section">
       <div class="container">
-        <div class="contacts-grid">
-          <div class="contact-info" data-animate>
-            <h2 id="contacts-info" class="sr-only">Контактная информация</h2>
+        <article class="privacy__section" data-animate>
+          <h2>1. Кто мы</h2>
+          <p>
+            Кондитерская «Наполеон и Балерина» (г. Чебоксары). Сайт предназначен для просмотра меню
+            и оформления заказов через мессенджеры / Telegram-бота.
+          </p>
+        </article>
 
-            <div class="contact-messengers" id="contact-messengers">
-              <div class="contact-messengers__list" id="contact-messengers-list"></div>
-            </div>
+        <article class="privacy__section" data-animate>
+          <h2>2. Какие данные обрабатываем</h2>
+          <ul>
+            <li><strong>Необходимые данные сайта</strong> — содержимое корзины и технические настройки в памяти браузера (localStorage). Без них сайт не работает как задумано.</li>
+            <li><strong>Данные заказа</strong> — имя, телефон, адрес, дата/время доставки и состав заказа, которые вы сами вводите при оформлении. Они нужны, чтобы выполнить заказ.</li>
+            <li><strong>Аналитика посещений (только с согласия)</strong> — обезличенные сведения: какая страница открыта, откуда пришли (домен источника), язык браузера, размер экрана, приблизительный уникальный визит за день. Мы не записываем ФИО, телефон и точный IP в отчёты статистики.</li>
+          </ul>
+        </article>
 
-            <div class="contact-info__item">
-              <div class="contact-info__icon" aria-hidden="true">📍</div>
-              <div>
-                <div class="contact-info__label">Адрес</div>
-                <div class="contact-info__value" id="contact-address">г. Москва, ул. Кондитерская, д. 12</div>
-              </div>
-            </div>
-            <div class="contact-info__item">
-              <div class="contact-info__icon" aria-hidden="true">📞</div>
-              <div>
-                <div class="contact-info__label">Телефон</div>
-                <a class="contact-info__value" id="contact-phone" href="tel:+74951234567">+7 (495) 123-45-67</a>
-              </div>
-            </div>
-            <div class="contact-info__item">
-              <div class="contact-info__icon" aria-hidden="true">✉️</div>
-              <div>
-                <div class="contact-info__label">Email</div>
-                <a class="contact-info__value" id="contact-email" href="mailto:hello@napoleon-balerina.ru">hello@napoleon-balerina.ru</a>
-              </div>
-            </div>
-            <div class="contact-info__item">
-              <div class="contact-info__icon" aria-hidden="true">🕐</div>
-              <div>
-                <div class="contact-info__label">Часы работы</div>
-                <div class="contact-info__value" id="contact-hours">Пн–Вс: 9:00 – 21:00</div>
-              </div>
-            </div>
+        <article class="privacy__section" data-animate>
+          <h2>3. Cookies и согласие</h2>
+          <p>
+            При первом визите показывается уведомление. Вы можете:
+          </p>
+          <ul>
+            <li><strong>Принять всё</strong> — разрешить аналитику посещений;</li>
+            <li><strong>Только необходимые</strong> — отклонить аналитику (корзина продолжит работать);</li>
+            <li><strong>Настроить</strong> — включить или выключить аналитику отдельно.</li>
+          </ul>
+          <p>
+            Решение хранится на вашем устройстве до 6 месяцев. Изменить его можно в любой момент:
+            ссылка «Настройки cookies» в подвале сайта.
+          </p>
+          <p>
+            <button type="button" class="btn btn--primary" data-open-consent>Открыть настройки cookies</button>
+          </p>
+        </article>
 
-            <form id="contact-form" style="margin-top: 2rem;" novalidate>
-              <h3>Форма обратной связи</h3>
-              <div class="form-group">
-                <label for="contact-name">Ваше имя</label>
-                <input type="text" id="contact-name" name="name" required placeholder="Иван">
-              </div>
-              <div class="form-group">
-                <label for="contact-email-input">Email</label>
-                <input type="email" id="contact-email-input" name="email" required placeholder="ivan@example.com">
-              </div>
-              <div class="form-group">
-                <label for="contact-phone-input">Телефон</label>
-                <input type="tel" id="contact-phone-input" name="phone" placeholder="+7 (999) 000-00-00">
-              </div>
-              <div class="form-group">
-                <label for="contact-message">Сообщение</label>
-                <textarea id="contact-message" name="message" required placeholder="Ваш вопрос или пожелание..."></textarea>
-              </div>
-              <button type="submit" class="btn btn--primary btn--full">Отправить</button>
-            </form>
-          </div>
+        <article class="privacy__section" data-animate>
+          <h2>4. Зачем нужна аналитика</h2>
+          <p>
+            Чтобы понимать, какие разделы меню смотрят чаще, и улучшать сайт. Сбор начинается
+            только после вашего согласия. При отказе или отзыве согласия новые события не отправляются.
+          </p>
+        </article>
 
-          <div class="map-container" data-animate aria-label="Карта расположения кондитерской">
-            <iframe
-              src="https://www.openstreetmap.org/export/embed.html?bbox=37.5976%2C55.7458%2C37.6376%2C55.7658&amp;layer=mapnik&amp;marker=55.7558%2C37.6176"
-              title="Карта — Наполеон и Балерина, Москва"
-              loading="lazy"
-            ></iframe>
-          </div>
-        </div>
+        <article class="privacy__section" data-animate>
+          <h2>5. Где хранятся данные</h2>
+          <p>
+            Заказы и агрегированная статистика обрабатываются на инфраструктуре Cloudflare
+            (серверная часть сайта / Telegram-бот). Отчёты доступны только администратору.
+          </p>
+        </article>
+
+        <article class="privacy__section" data-animate>
+          <h2>6. Контакты</h2>
+          <p>
+            По вопросам персональных данных и заказов:
+            <a href="mailto:89030633443@mail.ru">89030633443@mail.ru</a>,
+            <a href="tel:+79516806915">+7 (951) 680-69-15</a>.
+          </p>
+        </article>
       </div>
     </section>
   </main>

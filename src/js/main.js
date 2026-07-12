@@ -12,6 +12,8 @@ import {
 import { lockBodyScroll, unlockBodyScroll } from './pointer.js';
 import { MESSENGER_ICONS, getMessengerList } from './messengers.js';
 import { initHero } from './hero.js';
+import { initConsent } from './consent.js';
+import { initAnalytics } from './analytics.js';
 
 document.body.classList.add('no-scroll');
 
@@ -161,6 +163,8 @@ initNavigation();
 initCart();
 initHeaderScroll();
 initShopContent();
+initConsent();
+initAnalytics();
 
 if (page === 'index.html' || page === '') {
   initHero();
@@ -174,6 +178,8 @@ if (page === 'index.html' || page === '') {
 } else if (page === 'contacts.html') {
   initContactsPage();
   initContactForm('contact-form');
+} else if (page === 'privacy.html') {
+  initScrollAnimations();
 }
 
 window.addEventListener('load', () => {

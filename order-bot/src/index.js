@@ -2,11 +2,12 @@
  * Cloudflare Worker: приём заказов с сайта + Telegram webhook.
  *
  * Маршруты:
- *   POST /order     — новый заказ с сайта
- *   POST /telegram  — webhook Bot API (кнопки статусов, /orders, /start)
- *   POST /setup     — зарегистрировать меню команд «/»
- *   GET  /health    — проверка
- *   GET  /diag      — диагностика токена и команд
+ *   POST /order      — новый заказ с сайта
+ *   POST /analytics  — pageview (только после согласия на сайте)
+ *   POST /telegram   — webhook Bot API
+ *   POST /setup      — меню команд «/»
+ *   GET  /health     — проверка
+ *   GET  /diag       — диагностика
  */
 
 const STATUS = {
@@ -30,11 +31,12 @@ const BOT_COMMANDS = [
   { command: 'start', description: 'Меню и кнопки управления' },
   { command: 'orders', description: 'Активные заказы (новые и в работе)' },
   { command: 'done', description: 'Завершённые заказы' },
+  { command: 'stats', description: 'Статистика посещений сайта' },
   { command: 'help', description: 'Справка по боту' },
   { command: 'menu', description: 'Показать главное меню' },
 ];
 
-const COMMANDS_CACHE_KEY = 'meta:bot_commands_v1';
+const COMMANDS_CACHE_KEY = 'meta:bot_commands_v2';
 
 const HELP_TEXT =
   'Заказы приходят с сайта автоматически.\n\n' +
@@ -45,7 +47,8 @@ const HELP_TEXT =
   'Команды в меню «/»:\n' +
   BOT_COMMANDS.map((c) => `/${c.command} — ${c.description}`).join('\n') +
   '\n\nПод карточкой заказа меняйте статус кнопками.\n' +
-  'В списке можно открыть заказ отдельной кнопкой.';
+  'В списке можно открыть заказ отдельной кнопкой.\n' +
+  '/stats — статистика посещений сайта (только с согласия гостей).';
 
 const START_TEXT =
   'Бот заказов «Наполеон и Балерина» готов.\n\n' +
@@ -89,6 +92,10 @@ export default {
 
       if (path === '/order' && request.method === 'POST') {
         return cors(await handleOrder(request, env), request, env);
+      }
+
+      if (path === '/analytics' && request.method === 'POST') {
+        return cors(await handleAnalytics(request, env), request, env);
       }
 
       if (path === '/telegram' && request.method === 'POST') {
@@ -296,6 +303,157 @@ async function isHighOrderVelocity(env, ip) {
   return data.count >= 4;
 }
 
+/* ───────── Analytics (consented pageviews) ───────── */
+
+async function handleAnalytics(request, env) {
+  if (!checkOrigin(request, env)) {
+    return json({ error: 'Forbidden origin' }, 403);
+  }
+
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  if (!(await allowRate(env, `analytics:${ip}`, 60, 60))) {
+    return json({ error: 'Too many requests' }, 429);
+  }
+
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return json({ error: 'Invalid JSON' }, 400);
+  }
+
+  const pathName = clean(body.path || 'index.html', 80) || 'index.html';
+  const referrer = clean(body.referrer || 'direct', 80) || 'direct';
+  const screen = clean(body.screen || '', 24);
+  const language = clean(body.language || '', 16);
+  const day = moscowDayKey();
+  const ua = request.headers.get('User-Agent') || '';
+
+  const dayKey = `analytics:day:${day}`;
+  const stats = (await env.ORDERS.get(dayKey, { type: 'json' })) || {
+    total: 0,
+    uniques: 0,
+    pages: {},
+    referrers: {},
+    screens: {},
+    languages: {},
+  };
+
+  stats.total += 1;
+  stats.pages[pathName] = (stats.pages[pathName] || 0) + 1;
+  stats.referrers[referrer] = (stats.referrers[referrer] || 0) + 1;
+  if (screen) stats.screens[screen] = (stats.screens[screen] || 0) + 1;
+  if (language) stats.languages[language] = (stats.languages[language] || 0) + 1;
+
+  const visitorHash = await hashText(`${ip}|${ua.slice(0, 96)}|${day}`);
+  const seenKey = `analytics:seen:${day}`;
+  const seen = (await env.ORDERS.get(seenKey, { type: 'json' })) || {};
+  if (!seen[visitorHash]) {
+    seen[visitorHash] = 1;
+    stats.uniques += 1;
+    await env.ORDERS.put(seenKey, JSON.stringify(seen), { expirationTtl: 60 * 60 * 48 });
+  }
+
+  await env.ORDERS.put(dayKey, JSON.stringify(stats), { expirationTtl: 60 * 60 * 24 * 120 });
+
+  const indexKey = 'analytics:days';
+  const days = (await env.ORDERS.get(indexKey, { type: 'json' })) || [];
+  if (!days.includes(day)) {
+    days.push(day);
+    if (days.length > 120) days.splice(0, days.length - 120);
+    await env.ORDERS.put(indexKey, JSON.stringify(days));
+  }
+
+  return json({ ok: true });
+}
+
+async function sendAnalyticsStats(env, chatId) {
+  const days = (await env.ORDERS.get('analytics:days', { type: 'json' })) || [];
+  if (!days.length) {
+    await tg(env, 'sendMessage', {
+      chat_id: chatId,
+      text:
+        'Статистики пока нет.\n\n' +
+        'Сбор идёт только у посетителей, которые нажали «Принять всё» на сайте.',
+      reply_markup: mainReplyKeyboard(),
+    });
+    return;
+  }
+
+  const last7 = days.slice(-7).reverse();
+  const lines = ['<b>Статистика посещений</b> (по согласию)\n'];
+
+  let weekViews = 0;
+  let weekUniques = 0;
+
+  for (const day of last7) {
+    const s = (await env.ORDERS.get(`analytics:day:${day}`, { type: 'json' })) || {
+      total: 0,
+      uniques: 0,
+    };
+    weekViews += s.total || 0;
+    weekUniques += s.uniques || 0;
+    lines.push(`📅 ${escapeHtml(day)} — ${s.total || 0} просм., ${s.uniques || 0} уник.`);
+  }
+
+  lines.push('');
+  lines.push(`<b>7 дней:</b> ${weekViews} просмотров, ${weekUniques} уникальных`);
+
+  const todayKey = days[days.length - 1];
+  const today = (await env.ORDERS.get(`analytics:day:${todayKey}`, { type: 'json' })) || {
+    pages: {},
+    referrers: {},
+  };
+  const topPages = topEntries(today.pages, 5);
+  const topRefs = topEntries(today.referrers, 5);
+
+  if (topPages.length) {
+    lines.push('');
+    lines.push('<b>Сегодня — страницы:</b>');
+    topPages.forEach(([k, v]) => lines.push(`• ${escapeHtml(k)} — ${v}`));
+  }
+  if (topRefs.length) {
+    lines.push('');
+    lines.push('<b>Сегодня — источники:</b>');
+    topRefs.forEach(([k, v]) => lines.push(`• ${escapeHtml(k)} — ${v}`));
+  }
+
+  await tg(env, 'sendMessage', {
+    chat_id: chatId,
+    text: lines.join('\n'),
+    parse_mode: 'HTML',
+    reply_markup: mainReplyKeyboard(),
+  });
+}
+
+function topEntries(obj, limit) {
+  return Object.entries(obj || {})
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, limit);
+}
+
+function moscowDayKey(date = new Date()) {
+  try {
+    return new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Europe/Moscow',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(date);
+  } catch {
+    return date.toISOString().slice(0, 10);
+  }
+}
+
+async function hashText(value) {
+  const data = new TextEncoder().encode(String(value));
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  return [...new Uint8Array(digest)]
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('')
+    .slice(0, 24);
+}
+
 /* ───────── Telegram webhook ───────── */
 
 async function handleTelegram(request, env) {
@@ -341,6 +499,8 @@ async function handleTelegram(request, env) {
     await sendOrderList(env, chatId, true);
   } else if (action === 'done') {
     await sendOrderList(env, chatId, false);
+  } else if (action === 'stats') {
+    await sendAnalyticsStats(env, chatId);
   } else if (action === 'help') {
     await sendHelp(env, chatId);
   } else {
@@ -362,6 +522,7 @@ function resolveAdminAction(text) {
   if (raw === BTN.done || t.startsWith('/done') || t === 'завершённые' || t === 'завершенные') {
     return 'done';
   }
+  if (t.startsWith('/stats') || t === 'статистика' || t === 'стата') return 'stats';
   if (raw === BTN.help || t.startsWith('/help') || t === 'справка') return 'help';
   if (raw === BTN.menu || t.startsWith('/start') || t.startsWith('/menu') || t === 'меню') {
     return t.startsWith('/start') ? 'start' : 'menu';

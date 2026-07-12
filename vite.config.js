@@ -34,6 +34,7 @@ export default defineConfig(({ mode }) => {
           product: resolve(__dirname, 'product.html'),
           about: resolve(__dirname, 'about.html'),
           contacts: resolve(__dirname, 'contacts.html'),
+          privacy: resolve(__dirname, 'privacy.html'),
           // admin.html intentionally omitted from production build
         },
       },
