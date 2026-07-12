@@ -198,14 +198,19 @@ export function initDeliveryPickers(container, { onChange } = {}) {
   };
 }
 
-export function renderDeliveryPickersHtml() {
+/**
+ * @param {{ dateLabel?: string, timeLabel?: string }} [labels]
+ */
+export function renderDeliveryPickersHtml(labels = {}) {
   const defaults = getDefaultDelivery();
+  const dateLabel = labels.dateLabel || 'Дата доставки';
+  const timeLabel = labels.timeLabel || 'Время доставки';
   return `
     <div class="delivery-pickers" id="delivery-pickers">
       <p class="field-hint" data-delivery-hint></p>
       <div class="checkout-datetime">
         <div class="checkout-datetime__col">
-          <label>Дата доставки</label>
+          <label>${dateLabel}</label>
           <div class="picker-field">
             <button type="button" class="picker-field__trigger" data-date-trigger aria-expanded="false">
               <span class="picker-field__icon" aria-hidden="true">📅</span>
@@ -217,7 +222,7 @@ export function renderDeliveryPickersHtml() {
           </div>
         </div>
         <div class="checkout-datetime__col">
-          <label>Время доставки</label>
+          <label>${timeLabel}</label>
           <div class="picker-field">
             <button type="button" class="picker-field__trigger" data-time-trigger aria-expanded="false">
               <span class="picker-field__icon" aria-hidden="true">🕒</span>

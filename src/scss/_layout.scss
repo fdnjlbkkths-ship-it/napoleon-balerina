@@ -2382,6 +2382,107 @@
   }
 }
 
+// SBP payment success (post-order)
+.cart-payment {
+  padding-bottom: 0.5rem;
+
+  &__status {
+    margin: 0 0 0.35rem;
+    font-family: $font-heading;
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: $color-chocolate;
+  }
+
+  &__order-id {
+    margin: 0 0 0.75rem;
+    font-size: 0.875rem;
+    color: $color-text-light;
+
+    strong {
+      color: $color-text;
+      font-weight: 700;
+    }
+  }
+
+  &__lead {
+    margin: 0 0 1.25rem;
+    font-size: 0.875rem;
+    line-height: 1.55;
+    color: $color-text-light;
+  }
+
+  &__summary {
+    background: $color-cream;
+    border: 1px solid rgba($color-caramel, 0.2);
+    border-radius: $radius-md;
+    padding: 0.85rem 1rem;
+    margin-bottom: 1.15rem;
+  }
+
+  &__row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    font-size: 0.9375rem;
+    color: $color-text;
+
+    & + & {
+      margin-top: 0.55rem;
+      padding-top: 0.55rem;
+      border-top: 1px solid rgba($color-caramel, 0.15);
+    }
+
+    strong {
+      font-weight: 700;
+      color: $color-chocolate;
+    }
+  }
+
+  &__pay {
+    margin-bottom: 0.85rem;
+  }
+
+  &__qr-note,
+  &__hint {
+    margin: 0 0 0.75rem;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: $color-text-light;
+  }
+
+  &__contact {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.25rem;
+    margin: 1rem 0 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+
+    a {
+      color: $color-chocolate;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+
+      &:hover {
+        color: $color-caramel;
+      }
+    }
+  }
+
+  &__setup-note {
+    margin: 0;
+    padding: 0.55rem 0.75rem;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: $color-text-light;
+    background: rgba($color-blush, 0.35);
+    border: 1px solid rgba($color-caramel, 0.2);
+    border-radius: $radius-sm;
+  }
+}
+
 .antibot-hp {
   position: absolute;
   left: -10000px;

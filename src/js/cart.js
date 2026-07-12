@@ -1,17 +1,68 @@
 import { getFillingExtra, getPriceWithFilling } from './fillings.js';
 
 const CART_KEY = 'napoleon-balerina-cart';
+/** Корзина живёт ~30 минут с последнего изменения */
+export const CART_TTL_MS = 30 * 60 * 1000;
+const CART_EXPIRED_FLAG = 'napoleon-balerina-cart-expired';
 
 export function getCart() {
   try {
-    return JSON.parse(localStorage.getItem(CART_KEY)) || [];
+    const raw = JSON.parse(localStorage.getItem(CART_KEY));
+    if (!raw) return [];
+
+    // Legacy: plain array
+    if (Array.isArray(raw)) {
+      saveCart(raw);
+      return raw;
+    }
+
+    const items = Array.isArray(raw.items) ? raw.items : [];
+    const updatedAt = Number(raw.updatedAt) || 0;
+    if (!items.length) return [];
+
+    if (Date.now() - updatedAt > CART_TTL_MS) {
+      localStorage.removeItem(CART_KEY);
+      sessionStorage.setItem(CART_EXPIRED_FLAG, '1');
+      window.dispatchEvent(new CustomEvent('cart-updated', { detail: [] }));
+      return [];
+    }
+
+    return items;
   } catch {
     return [];
   }
 }
 
+/** True if cart was cleared due to 30‑min expiry (consumes the flag). */
+export function consumeCartExpiredFlag() {
+  const flag = sessionStorage.getItem(CART_EXPIRED_FLAG);
+  if (!flag) return false;
+  sessionStorage.removeItem(CART_EXPIRED_FLAG);
+  return true;
+}
+
+export function getCartMeta() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(CART_KEY));
+    if (!raw || Array.isArray(raw)) {
+      return { updatedAt: Date.now(), expiresAt: Date.now() + CART_TTL_MS };
+    }
+    const updatedAt = Number(raw.updatedAt) || Date.now();
+    return { updatedAt, expiresAt: updatedAt + CART_TTL_MS };
+  } catch {
+    return { updatedAt: Date.now(), expiresAt: Date.now() + CART_TTL_MS };
+  }
+}
+
 function saveCart(cart) {
-  localStorage.setItem(CART_KEY, JSON.stringify(cart));
+  localStorage.setItem(
+    CART_KEY,
+    JSON.stringify({
+      items: cart,
+      updatedAt: Date.now(),
+    })
+  );
+  sessionStorage.removeItem(CART_EXPIRED_FLAG);
   window.dispatchEvent(new CustomEvent('cart-updated', { detail: cart }));
 }
 

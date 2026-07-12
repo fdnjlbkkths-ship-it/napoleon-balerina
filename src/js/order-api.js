@@ -38,6 +38,8 @@ export async function submitOrderToBot(apiUrl, cart, extras = {}) {
     deliveryTime: extras.deliveryTime || '',
     comment: extras.comment || '',
     shopName: shop.name || '',
+    paymentMethod: extras.paymentMethod || 'sbp',
+    paymentStatus: extras.paymentStatus || 'Оплата: ожидает (СБП)',
     // anti-bot
     website: extras.website || '',
     startedAt: extras.startedAt || 0,

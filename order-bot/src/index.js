@@ -3,8 +3,9 @@
  *
  * Маршруты:
  *   POST /order      — новый заказ с сайта
- *   POST /otp/send   — отправить код на email
+ *   POST /otp/send   — отправить код на email (опционально; заказ без OTP)
  *   POST /otp/verify — подтвердить код
+ *   Email на /order необязателен; OTP для заказа не требуется (оплата СБП).
  *   POST /analytics  — pageview (только после согласия на сайте)
  *   POST /telegram   — webhook Bot API
  *   POST /setup      — меню команд «/»
@@ -157,19 +158,8 @@ async function handleOrder(request, env) {
     return json({ error: 'phone_required', message: 'Укажите полный номер телефона' }, 400);
   }
 
+  // Email optional (self-employed SBP). OTP is not required to place an order.
   const email = normalizeEmail(body.email);
-  if (!email) {
-    return json({ error: 'email_required', message: 'Укажите email' }, 400);
-  }
-
-  const emailToken = clean(body.emailToken, 80);
-  const verified = await consumeEmailToken(env, emailToken, email);
-  if (!verified) {
-    return json(
-      { error: 'email_not_verified', message: 'Подтвердите email кодом из письма' },
-      400
-    );
-  }
 
   const antiBot = await evaluateAntiBot(body, env, ip);
   if (antiBot.action === 'reject') {
@@ -200,6 +190,8 @@ async function handleOrder(request, env) {
     deliveryTime: clean(body.deliveryTime, 20),
     comment: clean(body.comment, 500),
     shopName: clean(body.shopName, 80) || 'Наполеон и Балерина',
+    paymentMethod: clean(body.paymentMethod, 20) || 'sbp',
+    paymentStatus: clean(body.paymentStatus, 80) || 'Оплата: ожидает (СБП)',
   };
 
   await saveOrder(env, order);
@@ -1103,6 +1095,7 @@ function formatOrderHtml(order) {
 
   lines.push('');
   lines.push(`💰 <b>Итого: ${formatMoney(order.total)}</b>`);
+  lines.push(`💳 ${escapeHtml(order.paymentStatus || 'Оплата: ожидает (СБП)')}`);
   lines.push('');
 
   if (order.name) lines.push(`👤 ${escapeHtml(order.name)}`);

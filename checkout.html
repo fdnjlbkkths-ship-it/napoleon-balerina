@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="description" content="Меню кондитерской Наполеон и Балерина — 20 позиций: торты, пирожные, печенье, десерты и напитки. Закажите онлайн.">
-  <meta name="keywords" content="меню, торты, пирожные, заказ, кондитерская">
-  <title>Меню — Наполеон и Балерина</title>
+  <meta name="description" content="Оформление заказа — кондитерская Наполеон и Балерина, Чебоксары.">
+  <meta name="robots" content="noindex">
+  <title>Оформление заказа — Наполеон и Балерина</title>
   <link rel="icon" type="image/jpeg" href="images/logo.jpg">
 </head>
-<body>
+<body class="page-checkout">
   <div id="loader" class="loader" aria-hidden="true">
     <div class="loader__spinner"></div>
     <p class="loader__text">Наполеон и Балерина</p>
@@ -47,59 +47,28 @@
     </ul>
   </nav>
 
-  <main>
-    <header class="page-header">
-      <div class="container">
-        <h1 data-animate>Наше меню</h1>
-        <p class="section__subtitle" data-animate>Авторские позиции — от классики до праздничных тортов на заказ</p>
-      </div>
-    </header>
+  <main id="checkout-root" class="checkout">
+    <div class="container checkout__container">
+      <ol id="checkout-progress" class="checkout-progress" aria-label="Шаги оформления"></ol>
 
-    <section class="section" aria-label="Каталог товаров">
-      <div class="container">
-        <div class="products__search" data-animate>
-          <div class="form-group">
-            <label for="product-search" class="sr-only">Поиск по меню</label>
-            <input type="search" id="product-search" placeholder="🔍 Поиск: Анна Павлова" aria-label="Поиск товаров">
+      <div class="checkout__layout">
+        <section id="checkout-panel" class="checkout-panel" aria-live="polite"></section>
+
+        <aside id="checkout-summary" class="checkout-summary" aria-label="Ваш заказ">
+          <h2 class="checkout-summary__title">Ваш заказ</h2>
+          <ul id="checkout-summary-list" class="checkout-summary__list"></ul>
+          <div class="checkout-summary__total">
+            <span>Итого</span>
+            <strong id="checkout-summary-total">0 ₽</strong>
           </div>
-        </div>
-        <div id="category-filters" class="products__filters" data-animate role="tablist" aria-label="Фильтр по категориям"></div>
-        <div class="products__toolbar" data-animate>
-          <div class="products__sort">
-            <span class="products__toolbar-label" id="sort-label">Сортировка</span>
-            <div id="product-sort" class="toolbar-dropdown" data-toolbar-dropdown aria-labelledby="sort-label"></div>
-          </div>
-          <div class="products__max-price">
-            <span class="products__toolbar-label" id="max-price-label">До цены</span>
-            <div id="product-max-price" class="toolbar-dropdown" data-toolbar-dropdown aria-labelledby="max-price-label"></div>
-          </div>
-        </div>
-        <div id="products-grid" class="products__grid"></div>
+          <p class="checkout-summary__ttl">Корзина сохраняется около 30 минут</p>
+        </aside>
       </div>
-    </section>
+    </div>
   </main>
 
   <footer class="footer" role="contentinfo">
     <div class="container">
-      <div class="footer__grid">
-        <div>
-          <div class="footer__brand" data-shop="name">Наполеон и Балерина</div>
-          <p class="footer__text" data-shop="footerText">Кондитерская, где каждый десерт — произведение искусства.</p>
-        </div>
-        <div>
-          <h3 class="footer__title">Навигация</h3>
-          <a href="index.html" class="footer__link">Главная</a>
-          <a href="menu.html" class="footer__link">Меню</a>
-          <a href="about.html" class="footer__link">О нас</a>
-          <a href="contacts.html" class="footer__link">Контакты</a>
-        </div>
-        <div>
-          <h3 class="footer__title">Контакты</h3>
-          <a href="tel:+79516806915" class="footer__link" data-shop="phone">+7 (951) 680-69-15</a>
-          <a href="mailto:89030633443@mail.ru" class="footer__link" data-shop="email">89030633443@mail.ru</a>
-          <span class="footer__link" data-shop="address">г. Чебоксары, ул. Лесная 7.</span>
-        </div>
-      </div>
       <div class="footer__bottom">&copy; 2026 <span data-shop="name">Наполеон и Балерина</span>. Все права защищены.</div>
       <div class="footer__legal">
         <a href="privacy.html">Политика конфиденциальности</a>

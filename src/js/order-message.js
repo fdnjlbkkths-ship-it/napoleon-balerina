@@ -1,5 +1,6 @@
 import { getCartTotal, formatPrice, formatCartItemName } from './cart.js';
 import { getShopInfo } from './data.js';
+import { SBP_PAYMENT } from './sbp-payment.js';
 
 function formatDeliveryDate(isoDate) {
   if (!isoDate) return '';
@@ -26,6 +27,7 @@ export function buildOrderMessage(cart, extras = {}) {
   lines.push('');
   lines.push('─────────────────');
   lines.push(`💰 *Итого: ${formatPrice(total)}*`);
+  lines.push(`💳 ${extras.paymentStatus || SBP_PAYMENT.paymentLine}`);
   lines.push('');
 
   if (extras.name?.trim()) lines.push(`👤 Имя: ${extras.name.trim()}`);

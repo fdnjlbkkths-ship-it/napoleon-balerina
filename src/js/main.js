@@ -1,6 +1,8 @@
 import '../scss/main.scss';
 import { initLoader, initScrollAnimations, initHeroParallax, initHeaderScroll } from './animations.js';
 import { initCart, initContactForm } from './ui.js';
+import { initCheckoutPage } from './checkout.js';
+import { consumeCartExpiredFlag } from './cart.js';
 import { getProducts, getShopInfo } from './data.js';
 import { renderCategories, renderProductCards } from './menu.js';
 import { initMenuPage } from './menu.js';
@@ -178,6 +180,34 @@ if (page === 'index.html' || page === '') {
   initContactForm('contact-form');
 } else if (page === 'privacy.html') {
   initScrollAnimations();
+} else if (page === 'checkout.html') {
+  initCheckoutPage();
+}
+
+// Flash message when redirected from empty/expired cart
+if (page === 'menu.html' || page === 'index.html' || page === '') {
+  const params = new URLSearchParams(window.location.search);
+  const cartFlag = params.get('cart');
+  const expired = consumeCartExpiredFlag();
+  if (cartFlag === 'empty' || cartFlag === 'expired' || expired) {
+    const toast = document.createElement('div');
+    toast.className = 'cart-expired-toast is-visible';
+    toast.setAttribute('role', 'status');
+    toast.textContent =
+      cartFlag === 'expired' || expired
+        ? 'Корзина устарела (более 30 минут). Добавьте товары снова.'
+        : 'Корзина пуста. Добавьте товары из меню, чтобы оформить заказ.';
+    document.body.appendChild(toast);
+    if (cartFlag) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('cart');
+      window.history.replaceState({}, '', url.pathname + url.search + url.hash);
+    }
+    setTimeout(() => {
+      toast.classList.remove('is-visible');
+      setTimeout(() => toast.remove(), 400);
+    }, 5200);
+  }
 }
 
 window.addEventListener('load', () => {
